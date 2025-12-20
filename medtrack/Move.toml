@@ -1,10 +1,10 @@
 [package]
-name = "medmarket"
+name = "medtrack"
 version = "0.0.1"
-published-at = "0x0"
+edition = "2024"  # <--- THÊM DÒNG NÀY ĐỂ DÙNG CÚ PHÁP MỚI
 
 [dependencies]
 Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 
 [addresses]
-medmarket = "0x0"  # Quan trọng: Phải khớp với 'module medmarket::...' trong code
+medtrack = "0x0"

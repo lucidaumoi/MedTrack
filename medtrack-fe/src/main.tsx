@@ -1,16 +1,17 @@
+// src/main.tsx
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "@mysten/dapp-kit/dist/index.css"; // Import CSS của ví
-import "./index.css"; // Tailwind CSS của bạn
+import "@mysten/dapp-kit/dist/index.css";
+import "./index.css";
 import App from "./App";
 
 import { SuiClientProvider, WalletProvider, createNetworkConfig } from "@mysten/dapp-kit";
+import { getFullnodeUrl } from "@mysten/sui/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// 1. Cấu hình mạng Testnet
 const { networkConfig } = createNetworkConfig({
-  testnet: { url: "https://fullnode.testnet.sui.io:443" },
-  mainnet: { url: "https://fullnode.mainnet.sui.io:443" },
+  testnet: { url: getFullnodeUrl("testnet") },
+  mainnet: { url: getFullnodeUrl("mainnet") },
 });
 
 const queryClient = new QueryClient();
