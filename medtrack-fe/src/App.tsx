@@ -9,7 +9,7 @@ import TrackingPage from "./pages/TrackingPage";
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+      <div className="min-h-screen bg-gray-50 text-gray-800 font-sans" style={{ minHeight: '100vh', backgroundColor: '#f9fafb' }}>
         {/* Navbar */}
         <nav className="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-50">
           <div className="text-xl font-bold text-blue-600 flex items-center gap-2">
@@ -28,8 +28,8 @@ function App() {
         <div className="container mx-auto p-6 max-w-4xl">
           <Routes>
             <Route path="/" element={<ProducerPage />} />
-            <Route path="/carrier" element={<div className="text-center mt-10">Carrier Page (Copy logic từ Producer)</div>} />
-            <Route path="/pharmacy" element={<div className="text-center mt-10">Pharmacy Page (Copy logic từ Producer)</div>} />
+            <Route path="/carrier" element={<CarrierPage />} />
+            <Route path="/pharmacy" element={<PharmacyPage />} />
             <Route path="/tracking" element={<TrackingPage />} />
           </Routes>
         </div>

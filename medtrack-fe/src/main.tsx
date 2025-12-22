@@ -1,4 +1,13 @@
 // src/main.tsx
+// Polyfill for Node.js globals
+import { Buffer } from 'buffer';
+
+window.Buffer = Buffer;
+
+if (typeof global === 'undefined') {
+  window.global = window;
+}
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "@mysten/dapp-kit/dist/index.css";

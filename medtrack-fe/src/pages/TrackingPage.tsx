@@ -45,11 +45,37 @@ export default function TrackingPage() {
       // BƯỚC 3: Map dữ liệu ra format đẹp để render
       const formattedTimeline = records.map((record: any) => {
         const f = record.data.content.fields;
+
+        // Debug log để xem dữ liệu thực tế
+        console.log("Raw record fields:", f);
+        console.log("Phone field:", f.phone, typeof f.phone);
+        console.log("Location field:", f.location_info, typeof f.location_info);
+
+        // Xử lý phone number để đảm bảo format đúng
+        let phoneDisplay = f.phone;
+        if (typeof phoneDisplay === 'string') {
+          phoneDisplay = phoneDisplay.trim();
+
+          // Nếu phone là empty string (chỉ record tạo đơn hàng), không hiển thị
+          if (phoneDisplay === "" && f.status === 1) { // STATUS_CREATED = 1
+            phoneDisplay = null; // Sẽ không hiển thị field này
+          } else if (phoneDisplay !== "") {
+            // Nếu là số điện thoại Việt Nam, format lại
+            if (phoneDisplay.match(/^(\+84|0)[0-9]{9,10}$/)) {
+              phoneDisplay = phoneDisplay.replace(/^\+84/, '0'); // Chuyển +84 thành 0
+            }
+          } else {
+            phoneDisplay = null; // Empty phone từ Carrier/Pharmacy cũng không hiển thị
+          }
+        }
+
+        console.log("Processed phone:", phoneDisplay, "from raw:", f.phone);
+
         return {
           status: f.status, // 1: Created, 2: Shipping, 3: Delivered
           actor: f.actor,
           location: f.location_info,
-          phone: f.phone,
+          phone: phoneDisplay,
           note: f.note,
           time: new Date(Number(f.timestamp)).toLocaleString(),
         };
@@ -108,7 +134,7 @@ export default function TrackingPage() {
               
               <div className="text-sm text-gray-600 space-y-1">
                 <p>📍 Tại: <span className="font-medium text-gray-900">{item.location}</span></p>
-                <p>📞 Liên hệ: {item.phone}</p>
+                {item.phone && <p>📞 Liên hệ: {item.phone}</p>}
                 <p>🕒 Thời gian: {item.time}</p>
                 <p className="text-xs text-gray-400 mt-2 truncate">Người thực hiện: {item.actor}</p>
               </div>
