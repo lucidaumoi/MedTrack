@@ -434,12 +434,12 @@ export default function ProducerPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Mã thuốc <span className="text-red-500">*</span>
                             </label>
-                            <input
+                            <input 
                                 type="text"
-                                className="border border-gray-300 p-3 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="VD: PhT-2025-12 (Paracetamol-2025-tháng 12)"
+                                className="border border-gray-300 p-3 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                placeholder="VD: PhT-2025-12 (Paracetamol-2025-tháng 12)" 
                                 value={drugId}
-                                onChange={e => setDrugId(e.target.value)}
+                                onChange={e => setDrugId(e.target.value)} 
                             />
                             <p className="text-xs text-gray-500 mt-1">Format: [Tên viết tắt 2-4 chữ]-YYYY-MM (VD: PhT-2025-12)</p>
                         </div>
@@ -447,12 +447,12 @@ export default function ProducerPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 Tên Nhà sản xuất <span className="text-red-500">*</span>
                             </label>
-                            <input
+                            <input 
                                 type="text"
-                                className="border border-gray-300 p-3 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="VD: Công ty Dược phẩm ABC"
+                                className="border border-gray-300 p-3 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                placeholder="VD: Công ty Dược phẩm ABC" 
                                 value={producerName}
-                                onChange={e => setProducerName(e.target.value)}
+                                onChange={e => setProducerName(e.target.value)} 
                             />
                             <p className="text-xs text-gray-500 mt-1">Tên công ty sản xuất thuốc</p>
                         </div>
@@ -548,7 +548,7 @@ export default function ProducerPage() {
 
                 {/* Nút Submit */}
                 <div className="pt-4 border-t">
-                    <button
+                    <button 
                         onClick={handleCreateOrder}
                         disabled={!drugId || !producerName || !producerPhone || !receiverCompany || !receiverAddress || !receiverPhone || !carrierPublicKey}
                         className="w-full bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 font-bold text-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl"
