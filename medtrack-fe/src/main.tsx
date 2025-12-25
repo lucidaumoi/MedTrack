@@ -2,10 +2,10 @@
 // Polyfill for Node.js globals
 import { Buffer } from 'buffer';
 
-window.Buffer = Buffer;
+(window as any).Buffer = Buffer;
 
-if (typeof global === 'undefined') {
-  window.global = window;
+if (typeof (window as any).global === 'undefined') {
+  (window as any).global = window;
 }
 
 import React from "react";

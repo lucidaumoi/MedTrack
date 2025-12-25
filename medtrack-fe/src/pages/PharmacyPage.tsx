@@ -1,182 +1,218 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSignAndExecuteTransaction, useCurrentAccount } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
-import { PACKAGE_ID, MODULE_NAME, ALLOWED_WALLETS } from "../constants";
+import { PACKAGE_ID, ALLOWED_WALLETS } from "../constants";
+import { ArrowLeft } from 'lucide-react';
 import {
-  validateBatchId,
   validatePharmacyName,
-  validatePhoneNumber,
-  validateAddress,
-  validateReceiverCompany
+  validatePhoneNumber
 } from '../utils/validation';
 
 export default function PharmacyPage() {
+  const navigate = useNavigate();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
   const currentAccount = useCurrentAccount();
-  const [formData, setFormData] = useState({
-    batchId: "", pharmacyName: "", pharmacyPhone: "", pharmacyLocation: ""
-  });
 
-  const completeDelivery = () => {
-    // Kiểm tra địa chỉ ví được phép
-    if (!currentAccount) {
-      alert("❌ Vui lòng kết nối ví Sui trước!");
-      return;
-    }
+  // Form states
+  const [batchId, setBatchId] = useState("");
+  const [pharmacyName, setPharmacyName] = useState("");
+  const [pharmacyPhone, setPharmacyPhone] = useState("");
+  const [pharmacyLocation] = useState(""); // Empty string for smart contract compatibility
 
-    if (!ALLOWED_WALLETS.includes(currentAccount.address)) {
-      alert("❌ Địa chỉ ví của bạn không được phép sử dụng hệ thống này!\n\nVui lòng liên hệ quản trị viên để được thêm vào danh sách cho phép.");
-      return;
-    }
 
-    if (!formData.batchId) {
-      alert("Vui lòng nhập ID lô thuốc!");
-      return;
-    }
 
-    // Validate Batch ID format
-    const batchIdValidation = validateBatchId(formData.batchId);
-    if (!batchIdValidation.isValid) {
-      alert("❌ " + batchIdValidation.error);
-      return;
-    }
-
-    // Validate tên nhà thuốc
-    const pharmacyNameValidation = validatePharmacyName(formData.pharmacyName);
-    if (!pharmacyNameValidation.isValid) {
-      alert("❌ " + pharmacyNameValidation.error);
-      return;
-    }
-
-    // Validate số điện thoại nhà thuốc
-    const pharmacyPhoneValidation = validatePhoneNumber(formData.pharmacyPhone);
-    if (!pharmacyPhoneValidation.isValid) {
-      alert("❌ " + pharmacyPhoneValidation.error);
-      return;
-    }
-
-    // Validate địa chỉ nhà thuốc
-    const pharmacyLocationValidation = validateAddress(formData.pharmacyLocation);
-    if (!pharmacyLocationValidation.isValid) {
-      alert("❌ " + pharmacyLocationValidation.error);
-      return;
-    }
-
-    const tx = new Transaction();
-
-    tx.moveCall({
-      target: `${PACKAGE_ID}::${MODULE_NAME}::complete_record_delivery`,
-      arguments: [
-        tx.object(formData.batchId),           // Batch Object ID
-        tx.pure.string(formData.pharmacyName),   // Tên nhà thuốc
-        tx.pure.string(formData.pharmacyPhone),  // SĐT nhà thuốc
-        tx.pure.string(formData.pharmacyLocation), // Địa chỉ nhà thuốc
-        tx.object("0x6"),                      // Clock
-      ],
-    });
-
-    signAndExecute(
-      {
-        transaction: tx,
-      },
-      {
-        onSuccess: (result) => {
-          console.log(result);
-          alert("✅ Đã xác nhận: NHẬN HÀNG THÀNH CÔNG");
-        },
-        onError: (err) => {
-          console.error(err);
-          alert("❌ Lỗi: " + err.message);
-        }
+  // Handle confirm receive
+  const handleConfirmReceive = async () => {
+    try {
+      // Wallet authorization check
+      if (!currentAccount) {
+        alert("❌ Vui lòng kết nối ví Sui trước!");
+        return;
       }
-    );
+
+      if (!ALLOWED_WALLETS.includes(currentAccount?.address || '')) {
+        alert("❌ Địa chỉ ví của bạn không được phép sử dụng hệ thống này!");
+        return;
+      }
+
+      // Validate all required fields
+      if (!batchId) {
+        alert("❌ Vui lòng nhập Batch ID!");
+        return;
+      }
+
+
+      // Validate pharmacy info
+      const pharmacyNameValidation = validatePharmacyName(pharmacyName);
+      if (!pharmacyNameValidation.isValid) {
+        alert("❌ " + pharmacyNameValidation.error);
+        return;
+      }
+
+      const pharmacyPhoneValidation = validatePhoneNumber(pharmacyPhone);
+      if (!pharmacyPhoneValidation.isValid) {
+        alert("❌ " + pharmacyPhoneValidation.error);
+        return;
+      }
+
+      // Create transaction
+      const txb = new Transaction();
+      txb.setGasBudget(200000000);
+
+      txb.moveCall({
+        target: `${PACKAGE_ID}::supply_chain::complete_record_delivery`,
+        arguments: [
+          txb.object(batchId), // Object ID of the batch
+          txb.pure.string(pharmacyName),
+          txb.pure.string(pharmacyPhone),
+          txb.pure.string(pharmacyLocation), // Empty string for compatibility
+          txb.object("0x6"), // Clock object
+        ],
+      });
+
+      // Execute transaction
+      signAndExecute(
+        {
+          transaction: txb,
+        },
+        {
+          onSuccess: (result) => {
+            console.log("Delivery confirmation success:", result);
+            alert("✅ Đã xác nhận nhận hàng thành công!");
+
+            // Reset form
+            setBatchId("");
+            setPharmacyName("");
+            setPharmacyPhone("");
+          },
+          onError: (error) => {
+            console.error("Delivery confirmation error:", error);
+            alert("❌ Lỗi xác nhận nhận hàng: " + (error instanceof Error ? error.message : String(error)));
+          }
+        }
+      );
+
+    } catch (error) {
+      console.error("Confirm receive error:", error);
+      alert("❌ Lỗi: " + (error instanceof Error ? error.message : String(error)));
+    }
   };
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-md border border-green-100">
+    <div className="min-h-screen bg-gray-50 p-6">
       {/* Wallet Status */}
-      <div className={`mb-6 p-4 rounded-lg border-2 ${
-          currentAccount && ALLOWED_WALLETS.includes(currentAccount.address)
-              ? 'bg-green-50 border-green-300'
-              : 'bg-red-50 border-red-300'
+      <div className={`mb-6 max-w-6xl mx-auto p-4 rounded-lg border-2 ${
+        currentAccount && ALLOWED_WALLETS.includes(currentAccount?.address || '')
+          ? 'bg-green-50 border-green-300'
+          : 'bg-red-50 border-red-300'
       }`}>
-          <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${
-                  currentAccount && ALLOWED_WALLETS.includes(currentAccount.address)
-                      ? 'bg-green-500'
-                      : 'bg-red-500'
-              }`}></div>
-              <span className="font-medium">
-                  {currentAccount && ALLOWED_WALLETS.includes(currentAccount.address)
-                      ? '✅ Ví được ủy quyền'
-                      : '❌ Ví chưa được ủy quyền'}
-              </span>
+        <div className="flex items-center space-x-2">
+          <div className={`w-3 h-3 rounded-full ${
+            currentAccount && ALLOWED_WALLETS.includes(currentAccount?.address || '')
+              ? 'bg-green-500'
+              : 'bg-red-500'
+          }`}></div>
+          <span className="font-medium">
+            {currentAccount && ALLOWED_WALLETS.includes(currentAccount?.address || '')
+              ? '✅ Ví được ủy quyền'
+              : '❌ Ví chưa được ủy quyền'}
+          </span>
+        </div>
+        {currentAccount && (
+          <div className="mt-2 text-sm font-mono break-all">
+            <strong>Địa chỉ ví:</strong> {currentAccount.address}
           </div>
-          {currentAccount && (
-              <div className="mt-2 text-sm font-mono break-all">
-                  <strong>Địa chỉ ví:</strong> {currentAccount.address}
-              </div>
-          )}
-          {!currentAccount && (
-              <div className="mt-2 text-sm text-red-600">
-                  ⚠️ Vui lòng kết nối ví Sui để sử dụng hệ thống
-              </div>
-          )}
-          {currentAccount && !ALLOWED_WALLETS.includes(currentAccount.address) && (
-              <div className="mt-2 text-sm text-red-600">
-                  ⚠️ Địa chỉ ví này không được phép sử dụng. Vui lòng liên hệ quản trị viên.
-              </div>
-          )}
+        )}
+        {!currentAccount && (
+          <div className="mt-2 text-sm text-red-600">
+            ⚠️ Vui lòng kết nối ví Sui để sử dụng hệ thống
+          </div>
+        )}
+        {currentAccount && !ALLOWED_WALLETS.includes(currentAccount?.address || '') && (
+          <div className="mt-2 text-sm text-red-600">
+            ⚠️ Địa chỉ ví này không được phép sử dụng. Vui lòng liên hệ quản trị viên.
+          </div>
+        )}
       </div>
 
-      <h2 className="text-2xl font-bold mb-4 text-green-700">🏥 Cổng Nhà Thuốc (Nhận Hàng)</h2>
-      <div className="bg-green-100 border border-green-400 rounded p-3 mb-4">
-        <p className="text-sm text-green-800 font-medium">
-          ✅ <strong>Smart Contract đã được deploy!</strong> Có thể xác nhận nhận hàng.
-        </p>
-        <p className="text-sm text-green-700 mt-1">
-          Nhập Batch ID từ Carrier để hoàn thành quy trình giao hàng.
-        </p>
-      </div>
-      <div className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">ID Lô thuốc (Đang chờ nhận)</label>
-          <input 
-            placeholder="Paste Batch ID vào đây..." 
-            className="border p-3 rounded-lg w-full bg-gray-50 font-mono text-sm"
-            onChange={(e) => setFormData({...formData, batchId: e.target.value})}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 gap-4">
-          <input
-            placeholder="VD: Pharmacity, Nhà thuốc An Khang, Guardian"
-            className="border p-3 rounded-lg w-full"
-            onChange={(e) => setFormData({...formData, pharmacyName: e.target.value})}
-          />
-          <input
-            placeholder="VD: 0987654321 (số điện thoại nhà thuốc)"
-            className="border p-3 rounded-lg w-full"
-            onChange={(e) => setFormData({...formData, pharmacyPhone: e.target.value})}
-          />
-          <textarea
-            placeholder="VD: 456 Đường XYZ, Quận UVW, TP.HCM (địa chỉ nhà thuốc)"
-            className="border p-3 rounded-lg w-full h-20 resize-none"
-            onChange={(e) => setFormData({...formData, pharmacyLocation: e.target.value})}
-          />
-        </div>
-
+      {/* Back to Dashboard Button */}
+      <div className="max-w-6xl mx-auto mb-6">
         <button
-          onClick={completeDelivery}
-          disabled={!formData.batchId || !formData.pharmacyName || !formData.pharmacyPhone || !formData.pharmacyLocation}
-          className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg w-full transition-all mt-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
         >
-          Xác Nhận Đã Nhận Hàng ✅
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium">Back to Dashboard</span>
         </button>
-        <p className="text-xs text-center text-gray-500 mt-2">
-          Vui lòng điền đầy đủ Batch ID và thông tin nhà thuốc
-        </p>
       </div>
+
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8 text-center">🏥 Trang Nhà Thuốc</h1>
+
+        {/* Pharmacy Form */}
+        <div className="max-w-6xl mx-auto px-8">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+              <div className="bg-green-500 text-white p-3">
+                <h3 className="text-lg font-bold">🏥 Nhà thuốc nhận</h3>
+              </div>
+              <div className="p-8 space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Batch ID <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={batchId}
+                    onChange={(e) => setBatchId(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                    placeholder="Nhập Batch ID để xác nhận đơn hàng"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tên nhà thuốc <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={pharmacyName}
+                    onChange={(e) => setPharmacyName(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                    placeholder="Nhập tên nhà thuốc..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Số điện thoại <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="tel"
+                    value={pharmacyPhone}
+                    onChange={(e) => setPharmacyPhone(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                    placeholder="Nhập số điện thoại..."
+                  />
+                </div>
+
+
+                <div className="pt-4">
+                  <button
+                    onClick={handleConfirmReceive}
+                    disabled={!batchId || !pharmacyName || !pharmacyPhone}
+                    className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-full transition-colors shadow-lg text-lg"
+                  >
+                    ✅ Xác nhận đã nhận đơn hàng
+                  </button>
+                </div>
+
+                <p className="text-xs text-center text-gray-500 mt-6">
+                  Vui lòng điền đầy đủ thông tin để xác nhận nhận hàng
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
     </div>
   );
 }

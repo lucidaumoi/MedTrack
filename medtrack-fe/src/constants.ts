@@ -1,7 +1,7 @@
 // src/constants.ts
 export const NETWORK = "testnet";
 // Package ID sau khi deploy smart contract lên testnet
-export const PACKAGE_ID = "0xe0152c8b3cae3b7f28e5d93235d9cb658dec3f694d89851894c87abe09e38124";
+export const PACKAGE_ID = "0xb7041c6d6d14f8dafeebc61604643ea031a06540a0201bc864835bae28980ccb";
 export const MODULE_NAME = "supply_chain";
 
 // Danh sách địa chỉ ví được phép sử dụng hệ thống

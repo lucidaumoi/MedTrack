@@ -4,6 +4,7 @@ module medtrack::supply_chain {
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
     use sui::clock::{Self, Clock};
+    use sui::event;
 
     // --- Error Codes ---
     const EInvalidStatus: u64 = 1;
@@ -30,6 +31,14 @@ module medtrack::supply_chain {
         phone: String,
         timestamp: u64,
         note: String
+    }
+
+    // Event for batch creation
+    public struct BatchCreatedEvent has copy, drop {
+        batch_id: ID,
+        medicine_code: String,
+        manufacturer: String,
+        created_by: address,
     }
 
     // --- Functions ---
@@ -85,7 +94,7 @@ module medtrack::supply_chain {
         clock: &Clock,
         ctx: &mut TxContext
     ) {
-        let _batch_id = create_order(
+        let batch_id = create_order(
             *string::as_bytes(&medicine_code),
             *string::as_bytes(&manufacturer),
             *string::as_bytes(&receiver_company),
@@ -93,7 +102,14 @@ module medtrack::supply_chain {
             clock,
             ctx
         );
-        // Batch ID will be returned in transaction effects
+
+        // Emit event with batch ID for frontend to capture
+        event::emit(BatchCreatedEvent {
+            batch_id,
+            medicine_code,
+            manufacturer,
+            created_by: tx_context::sender(ctx),
+        });
     }
 
     public fun update_shipping(
@@ -160,7 +176,7 @@ module medtrack::supply_chain {
             batch_id: object::uid_to_inner(&batch.id),
             status: STATUS_DELIVERED,
             actor: sender,
-            location_info: string::utf8(pharmacy_location_bytes),
+            location_info: string::utf8(pharmacy_name_bytes),
             phone: string::utf8(pharmacy_phone_bytes),
             timestamp: clock::timestamp_ms(clock),
             note: string::utf8(b"Delivered Success")

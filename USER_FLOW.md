@@ -17,7 +17,7 @@
 #### **Bước 1: Kết nối ví Sui**
 ```
 User Action:
-├── Mở browser → Truy cập http://localhost:5173
+├── Mở browser → Truy cập trang web
 ├── Click "Connect Wallet"
 ├── Chọn ví Sui (Sui Wallet, etc.)
 ├── Approve connection
