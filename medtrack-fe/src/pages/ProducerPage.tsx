@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSuiClient, useSignAndExecuteTransaction, useCurrentAccount } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
-import { PACKAGE_ID, ALLOWED_WALLETS } from '../constants';
+import { PACKAGE_ID } from '../constants';
 import { ShieldCheck, QrCode, ArrowLeft } from 'lucide-react';
 import nacl from 'tweetnacl';
 import naclUtil from 'tweetnacl-util';
@@ -65,10 +65,6 @@ export default function ProducerPage() {
         return;
       }
 
-      if (!ALLOWED_WALLETS.includes(currentAccount?.address || '')) {
-        alert("❌ Địa chỉ ví của bạn không được phép sử dụng hệ thống này!\n\nVui lòng liên hệ quản trị viên để được thêm vào danh sách cho phép.");
-        return;
-      }
 
       // Validate carrier public key
       if (!carrierPublicKey) {
@@ -273,20 +269,20 @@ export default function ProducerPage() {
       <div className="min-h-screen bg-gray-50 p-6">
         {/* Wallet Status */}
         <div className={`mb-6 max-w-4xl mx-auto p-4 rounded-lg border-2 ${
-          currentAccount && ALLOWED_WALLETS.includes(currentAccount?.address || '')
+          currentAccount
             ? 'bg-green-50 border-green-300'
             : 'bg-red-50 border-red-300'
         }`}>
           <div className="flex items-center space-x-2">
             <div className={`w-3 h-3 rounded-full ${
-              currentAccount && ALLOWED_WALLETS.includes(currentAccount?.address || '')
+              currentAccount
                 ? 'bg-green-500'
                 : 'bg-red-500'
             }`}></div>
             <span className="font-medium">
-              {currentAccount && ALLOWED_WALLETS.includes(currentAccount?.address || '')
-                ? '✅ Ví được ủy quyền'
-                : '❌ Ví chưa được ủy quyền'}
+              {currentAccount
+                ? '✅ Ví đã kết nối'
+                : '❌ Chưa kết nối ví'}
             </span>
           </div>
           {currentAccount && (
@@ -299,12 +295,7 @@ export default function ProducerPage() {
               ⚠️ Vui lòng kết nối ví Sui để sử dụng hệ thống
             </div>
           )}
-          {currentAccount && !ALLOWED_WALLETS.includes(currentAccount?.address || '') && (
-            <div className="mt-2 text-sm text-red-600">
-              ⚠️ Địa chỉ ví này không được phép sử dụng. Vui lòng liên hệ quản trị viên.
-            </div>
-        )}
-      </div>
+        </div>
 
       {/* Back to Dashboard Button */}
       <div className="max-w-4xl mx-auto mb-6">
