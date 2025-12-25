@@ -13,10 +13,11 @@
 ### ✅ Solutions Applied
 
 #### 1. Build Configuration Fix
-- **File**: `netlify.toml`
+- **File**: `netlify.toml` (in repository root)
 - **Fixes**:
   - Node.js 18 environment
-  - NPM production flag disabled
+  - `NPM_FLAGS = "--include=dev"` - ensures devDependencies are installed
+  - Build command: `cd medtrack-fe && npm ci --include=dev && npm run build`
   - Optimized build settings
 
 #### 2. SPA Routing Fix
@@ -75,12 +76,26 @@ In Netlify Dashboard:
 
 ### 🐛 Troubleshooting
 
+#### Issue: Build stuck or not deploying latest changes
+**Solution**:
+- Clear Netlify cache: Dashboard → Site Settings → Build & Deploy → "Clear cache and redeploy"
+- Trigger manual deploy: Dashboard → Deploys → "Trigger deploy" → "Deploy site"
+- Check build logs for detailed error messages
+
 #### Issue: "No redirect rules processed" / "No header rules processed"
 **Solution**:
 - Ensure `netlify.toml` is in the **repository root** directory, not in medtrack-fe/
 - Remove any `_redirects` file from `public/` folder (conflicts with netlify.toml)
 - Redeploy the entire site
 - Check that netlify.toml is committed to Git
+
+#### Issue: "vite: not found" or missing build tools
+**Solution**:
+- Ensure `NPM_FLAGS = "--include=dev"` is set in netlify.toml
+- Ensure `NPM_CONFIG_PRODUCTION = "false"` is set
+- Build command should be: `cd medtrack-fe && npm ci --include=dev && npm run build`
+- Clear Netlify cache: Netlify Dashboard → Site Settings → Build & Deploy → Clear cache and redeploy
+- Verify Vite is in devDependencies in package.json
 
 #### Issue: Build failing with `@mysten/sui` errors
 **Solution**:

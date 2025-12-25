@@ -1,9 +1,10 @@
 [build]
   publish = "medtrack-fe/dist"
-  command = "cd medtrack-fe && npm run build"
+  command = "cd medtrack-fe && npm ci --include=dev && npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_FLAGS = "--include=dev"
 
 [[redirects]]
   from = "/*"
