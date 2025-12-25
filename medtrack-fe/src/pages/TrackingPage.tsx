@@ -454,7 +454,7 @@ export default function TrackingPage() {
                     <div className="bg-gray-50 rounded-lg p-4 ml-4 border border-gray-100">
                       <h3 className="font-bold text-gray-800 text-lg mb-2">🏭 Sản xuất</h3>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>🏢 Công ty: <span className="font-medium text-gray-900">{createdRecord.location}</span></p>
+                        <p>🏢 Tên thuốc: <span className="font-medium text-gray-900">{createdRecord.location}</span></p>
                         <p>💊 Mã thuốc: <span className="font-medium text-gray-900">{medicineCode}</span></p>
                         <p>📅 Ngày tạo: <span className="font-medium text-gray-900">{createdRecord.time}</span></p>
                       </div>
