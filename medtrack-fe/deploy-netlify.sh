@@ -1,9 +1,17 @@
 #!/bin/bash
 
 # 🚀 MedTrack Netlify Deployment Script
-# Run this script to deploy MedTrack to Netlify
+# Run this script from the repository ROOT directory
+# IMPORTANT: This script should be run from the MedTrack/ directory, not medtrack-fe/
 
 echo "🚀 Starting MedTrack Netlify Deployment..."
+
+# Check if we're in the right directory
+if [ ! -f "netlify.toml" ]; then
+    echo "❌ Error: netlify.toml not found in current directory"
+    echo "Please run this script from the MedTrack/ repository root directory"
+    exit 1
+fi
 
 # Check if Netlify CLI is installed
 if ! command -v netlify &> /dev/null; then
@@ -18,8 +26,9 @@ if ! netlify status &> /dev/null; then
     netlify login
 fi
 
-# Build the project
+# Navigate to frontend directory and build
 echo "🔨 Building project..."
+cd medtrack-fe
 npm run build
 
 if [ $? -ne 0 ]; then
@@ -27,16 +36,17 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+cd ..
 echo "✅ Build successful!"
 
 # Check if site already exists
 if netlify sites:list | grep -q "medtrack"; then
     echo "📦 Deploying to existing site..."
-    netlify deploy --prod --dir=dist
+    netlify deploy --prod --dir=medtrack-fe/dist
 else
     echo "🆕 Creating new Netlify site..."
     netlify init
-    netlify deploy --prod --dir=dist
+    netlify deploy --prod --dir=medtrack-fe/dist
 fi
 
 if [ $? -eq 0 ]; then
@@ -53,6 +63,8 @@ if [ $? -eq 0 ]; then
     echo "3. Redeploy the site to apply environment variables"
     echo ""
     echo "🔗 Your site should now be live!"
+    echo ""
+    echo "📝 Note: netlify.toml is now in repository root for proper processing"
 else
     echo "❌ Deployment failed! Check the errors above."
     exit 1

@@ -20,9 +20,9 @@
   - Optimized build settings
 
 #### 2. SPA Routing Fix
-- **File**: `public/_redirects`
-- **Purpose**: Tells Netlify to serve `index.html` for all routes
-- **Content**: `/*    /index.html   200`
+- **File**: `netlify.toml` (in repository root)
+- **Purpose**: Tells Netlify to serve `index.html` for all routes via redirect rules
+- **Important**: Must be in repository root directory, not in medtrack-fe/
 
 #### 3. Security Headers & CORS
 - **File**: `netlify.toml`
@@ -75,6 +75,13 @@ In Netlify Dashboard:
 
 ### 🐛 Troubleshooting
 
+#### Issue: "No redirect rules processed" / "No header rules processed"
+**Solution**:
+- Ensure `netlify.toml` is in the **repository root** directory, not in medtrack-fe/
+- Remove any `_redirects` file from `public/` folder (conflicts with netlify.toml)
+- Redeploy the entire site
+- Check that netlify.toml is committed to Git
+
 #### Issue: Build failing with `@mysten/sui` errors
 **Solution**:
 - Ensure Node.js version is exactly 18 in Netlify
@@ -84,9 +91,10 @@ In Netlify Dashboard:
 
 #### Issue: Still getting 404 on direct links
 **Solution**:
-- Check that `_redirects` file is in `public/` folder and deployed
-- Verify `netlify.toml` has the redirect rules
+- Verify `netlify.toml` is in repository root with redirect rules
+- Check Netlify deploy summary shows "redirect rules processed"
 - Test by accessing yoursite.netlify.app/producer directly
+- Ensure build command is `cd medtrack-fe && npm run build`
 
 #### Issue: Sui wallet not connecting
 **Solution**:
