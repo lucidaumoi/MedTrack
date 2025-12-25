@@ -25,18 +25,20 @@ export default defineConfig({
       buffer: 'buffer',
     },
   },
-  optimizeDeps: {
-    include: ['@mysten/sui/client', '@mysten/sui/transactions', '@mysten/dapp-kit'],
-  },
   build: {
     outDir: 'dist',
     sourcemap: false,
+    commonjsOptions: {
+      include: [/node_modules/],
+      extensions: ['.js', '.cjs'],
+    },
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          sui: ['@mysten/dapp-kit', '@mysten/sui'],
+          sui: ['@mysten/dapp-kit'],
           router: ['react-router-dom'],
+          crypto: ['tweetnacl', 'tweetnacl-util'],
         },
       },
     },

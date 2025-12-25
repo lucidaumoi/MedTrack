@@ -86,6 +86,7 @@ In Netlify Dashboard:
 **Solution**:
 - Ensure Node.js version is exactly 18 in Netlify
 - Check that `NPM_FLAGS = "--production=false"` is set
+- Verify build script uses `vite build` (not `tsc -b`)
 - Clear Netlify cache and redeploy
 - Verify package versions in `package-lock.json`
 
