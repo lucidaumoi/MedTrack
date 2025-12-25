@@ -1,8 +1,8 @@
 // src/constants.ts
-export const NETWORK = "testnet";
+export const NETWORK = import.meta.env.VITE_NETWORK || "testnet";
 // Package ID sau khi deploy smart contract lên testnet
-export const PACKAGE_ID = "0xb7041c6d6d14f8dafeebc61604643ea031a06540a0201bc864835bae28980ccb";
-export const MODULE_NAME = "supply_chain";
+export const PACKAGE_ID = import.meta.env.VITE_PACKAGE_ID || "0xb7041c6d6d14f8dafeebc61604643ea031a06540a0201bc864835bae28980ccb";
+export const MODULE_NAME = import.meta.env.VITE_MODULE_NAME || "supply_chain";
 
 // Danh sách địa chỉ ví được phép sử dụng hệ thống
 export const ALLOWED_WALLETS = [

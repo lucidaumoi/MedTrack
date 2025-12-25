@@ -25,4 +25,24 @@ export default defineConfig({
       buffer: 'buffer',
     },
   },
+  optimizeDeps: {
+    include: ['@mysten/sui/client', '@mysten/sui/transactions', '@mysten/dapp-kit'],
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          sui: ['@mysten/dapp-kit', '@mysten/sui'],
+          router: ['react-router-dom'],
+        },
+      },
+    },
+  },
+  server: {
+    host: true,
+    port: 5173,
+  },
 })
