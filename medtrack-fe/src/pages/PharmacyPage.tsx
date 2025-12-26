@@ -27,14 +27,14 @@ export default function PharmacyPage() {
     try {
       // Wallet authorization check
       if (!currentAccount) {
-        alert("❌ Vui lòng kết nối ví Sui trước!");
+        alert("❌ Please connect your Sui wallet first!");
         return;
       }
 
 
       // Validate all required fields
       if (!batchId) {
-        alert("❌ Vui lòng nhập Batch ID!");
+        alert("❌ Please enter Batch ID!");
         return;
       }
 
@@ -111,18 +111,18 @@ export default function PharmacyPage() {
           }`}></div>
           <span className="font-medium">
             {currentAccount
-              ? '✅ Ví đã kết nối'
-              : '❌ Chưa kết nối ví'}
+              ? '✅ Wallet Connected'
+              : '❌ Wallet Not Connected'}
           </span>
         </div>
         {currentAccount && (
           <div className="mt-2 text-sm font-mono break-all">
-            <strong>Địa chỉ ví:</strong> {currentAccount.address}
+            <strong>Wallet Address:</strong> {currentAccount.address}
           </div>
         )}
         {!currentAccount && (
           <div className="mt-2 text-sm text-red-600">
-            ⚠️ Vui lòng kết nối ví Sui để sử dụng hệ thống
+            ⚠️ Please connect your Sui wallet to use the system
           </div>
         )}
       </div>
@@ -139,13 +139,13 @@ export default function PharmacyPage() {
       </div>
 
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">🏥 Trang Nhà Thuốc</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">🏥 Pharmacy Page</h1>
 
         {/* Pharmacy Form */}
         <div className="max-w-6xl mx-auto px-8">
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
               <div className="bg-green-500 text-white p-3">
-                <h3 className="text-lg font-bold">🏥 Nhà thuốc nhận</h3>
+                <h3 className="text-lg font-bold">🏥 Receiving Pharmacy</h3>
               </div>
               <div className="p-8 space-y-6">
                 <div>
@@ -175,7 +175,7 @@ export default function PharmacyPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Số điện thoại <span className="text-red-500">*</span>
+                    Phone <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"

@@ -71,19 +71,19 @@ export default function CarrierPage() {
     const newKeyPair = generateKeyPair();
     setPublicKey(newKeyPair.publicKey);
     setPrivateKey(newKeyPair.secretKey);
-    alert("✅ Đã tạo cặp khóa mới thành công!\n\nHãy copy Public Key và gửi cho Producer.");
+    alert("✅ New key pair created successfully!\n\nPlease copy the Public Key and send it to the Producer.");
   };
 
   // Handle data decryption
   const handleDecrypt = async () => {
     try {
       if (!privateKey) {
-        alert("❌ Vui lòng tạo khóa trước!");
+        alert("❌ Please generate keys first!");
         return;
       }
 
       if (!encryptedData) {
-        alert("❌ Vui lòng nhập chuỗi mã hóa!");
+        alert("❌ Please enter the encrypted string!");
         return;
       }
 
@@ -91,10 +91,10 @@ export default function CarrierPage() {
       const decrypted = await decryptData(encryptedObject, privateKey);
 
       setDecryptedInfo(decrypted);
-      alert("✅ Đã giải mã thành công!");
+      alert("✅ Decryption successful!");
     } catch (error) {
       console.error("Decryption error:", error);
-      alert("❌ Lỗi giải mã: " + (error instanceof Error ? error.message : String(error)));
+      alert("❌ Decryption error: " + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -218,7 +218,7 @@ export default function CarrierPage() {
 
     } catch (error) {
       console.error("Update shipping error:", error);
-      alert("❌ Lỗi: " + (error instanceof Error ? error.message : String(error)));
+      alert("❌ Error: " + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -238,18 +238,18 @@ export default function CarrierPage() {
           }`}></div>
           <span className="font-medium">
             {currentAccount
-              ? '✅ Ví đã kết nối'
-              : '❌ Chưa kết nối ví'}
+              ? '✅ Wallet Connected'
+              : '❌ Wallet Not Connected'}
           </span>
         </div>
         {currentAccount && (
           <div className="mt-2 text-sm font-mono break-all">
-            <strong>Địa chỉ ví:</strong> {currentAccount.address}
+            <strong>Wallet Address:</strong> {currentAccount.address}
           </div>
         )}
         {!currentAccount && (
           <div className="mt-2 text-sm text-red-600">
-            ⚠️ Vui lòng kết nối ví Sui để sử dụng hệ thống
+            ⚠️ Please connect your Sui wallet to use the system
           </div>
         )}
       </div>
@@ -266,7 +266,7 @@ export default function CarrierPage() {
       </div>
 
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">🚛 Trang Vận Chuyển</h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">🚛 Carrier Page</h1>
 
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -276,7 +276,7 @@ export default function CarrierPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Key className="w-5 h-5 text-blue-500" />
-                Quản lý Khóa
+                Key Management
               </h2>
 
               {/* Generate Key Button */}
@@ -329,7 +329,7 @@ export default function CarrierPage() {
                     onClick={() => setShowPrivateKey(!showPrivateKey)}
                     disabled={!privateKey}
                     className="p-2 bg-gray-100 hover:bg-gray-200 disabled:bg-gray-50 disabled:cursor-not-allowed rounded-md transition-colors"
-                    title={showPrivateKey ? "Ẩn Private Key" : "Hiện Private Key"}
+                    title={showPrivateKey ? "Hide Private Key" : "Show Private Key"}
                   >
                     {showPrivateKey ? <EyeOff className="w-4 h-4 text-gray-600" /> : <Eye className="w-4 h-4 text-gray-600" />}
                   </button>

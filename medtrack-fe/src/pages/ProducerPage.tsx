@@ -122,7 +122,7 @@ export default function ProducerPage() {
 
       const encryptedString = JSON.stringify(encryptedObject);
 
-      console.log("Chuỗi mã hóa sẽ lưu lên Chain:", encryptedString);
+      console.log("Encrypted string to be stored on Chain:", encryptedString);
 
       // Create transaction
       const txb = new Transaction();
@@ -260,7 +260,7 @@ export default function ProducerPage() {
 
     } catch (error) {
       console.error("Transaction error:", error);
-      alert("❌ Lỗi khi tạo đơn hàng: " + (error as Error).message);
+      alert("❌ Error creating order: " + (error as Error).message);
     }
   };
 
@@ -281,13 +281,13 @@ export default function ProducerPage() {
             }`}></div>
             <span className="font-medium">
               {currentAccount
-                ? '✅ Ví đã kết nối'
-                : '❌ Chưa kết nối ví'}
+                ? '✅ Wallet Connected'
+                : '❌ Wallet Not Connected'}
             </span>
           </div>
           {currentAccount && (
             <div className="mt-2 text-sm font-mono break-all">
-              <strong>Địa chỉ ví:</strong> {currentAccount.address}
+              <strong>Wallet Address:</strong> {currentAccount.address}
             </div>
           )}
           {!currentAccount && (
@@ -311,7 +311,7 @@ export default function ProducerPage() {
       <div className="max-w-4xl mx-auto">
           {/* Grid Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Card 1: Thông tin thuốc */}
+            {/* Card 1: Medicine Information */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
               <div className="bg-[#3b82f6] text-white p-3">
                 <h2 className="text-xl font-bold">💊 Medicine Information</h2>
@@ -356,7 +356,7 @@ export default function ProducerPage() {
               </div>
             </div>
 
-            {/* Card 2: Thông tin nhận */}
+            {/* Card 2: Receiver Information */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
               <div className="bg-[#3b82f6] text-white p-3">
                 <h2 className="text-xl font-bold">📦 Receiver Information</h2>
@@ -404,7 +404,7 @@ export default function ProducerPage() {
             </div>
           </div>
 
-          {/* Card 3: Mã bảo mật - Full width */}
+          {/* Card 3: Security Code - Full width */}
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-8">
             <div className="bg-[#3b82f6] text-white p-3">
               <h2 className="text-xl font-bold">🔐 Security Code</h2>
@@ -425,7 +425,7 @@ export default function ProducerPage() {
                 <textarea
                   rows={4}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Dán Public Key của Carrier vào đây..."
+                  placeholder="Paste Carrier's Public Key here..."
                   value={carrierPublicKey}
                   onChange={e => setCarrierPublicKey(e.target.value)}
                 />
