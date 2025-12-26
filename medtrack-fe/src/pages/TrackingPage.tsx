@@ -49,7 +49,7 @@ export default function TrackingPage() {
       console.error("❌ INVALID FORMAT: Batch ID must be 64 hex characters");
       console.error("Expected format: /^[0-9a-f]{64}$/");
       console.error("Got:", normalizedId);
-      alert("Batch ID không đúng format! Phải là 64 ký tự hex.");
+      alert("Invalid Batch ID format! Must be 64 hex characters.");
       setLoading(false);
       return;
     }
@@ -82,12 +82,12 @@ export default function TrackingPage() {
         console.error("3. Wrong network (should be testnet)");
         console.error("4. Smart contract error during creation");
 
-        const errorMsg = `Không tìm thấy batch với ID: ${normalizedId}\n\n` +
-                        `⚠️ Nguyên nhân có thể:\n` +
-                        `• Transaction chưa được confirm (đợi 10-30 giây)\n` +
-                        `• Network sai (phải là testnet)\n` +
-                        `• Batch ID không đúng\n\n` +
-                        `💡 Hãy thử lại sau vài giây!`;
+        const errorMsg = `Batch not found with ID: ${normalizedId}\n\n` +
+                        `⚠️ Possible causes:\n` +
+                        `• Transaction not confirmed yet (wait 10-30 seconds)\n` +
+                        `• Wrong network (must be testnet)\n` +
+                        `• Incorrect Batch ID\n\n` +
+                        `💡 Please try again in a few seconds!`;
 
         setError(errorMsg);
         console.log("❌ SEARCH FAILED - Error details above");
@@ -99,7 +99,7 @@ export default function TrackingPage() {
       }
 
       if (!batchObj.data?.content) {
-        alert("Object không có content!");
+        alert("Object has no content!");
         setLoading(false);
         return;
       }
@@ -114,7 +114,7 @@ export default function TrackingPage() {
 
       if (!fields) {
         console.error("Fields is null or undefined!");
-        alert("Object không có fields hợp lệ!");
+        alert("Object has no valid fields!");
         setLoading(false);
         return;
       }
@@ -143,7 +143,7 @@ export default function TrackingPage() {
         console.error("StatusRecord batch_id:", fields.batch_id);
         console.error("Try searching with this MedicineBatch ID instead:", fields.batch_id);
 
-        setError(`❌ Sai loại Object!\n\nBạn đã tìm kiếm StatusRecord ID thay vì MedicineBatch ID.\n\nMedicineBatch ID đúng: ${fields.batch_id}\n\nHãy copy ID trên và search lại.`);
+        setError(`❌ Wrong Object Type!\n\nYou searched for a StatusRecord ID instead of MedicineBatch ID.\n\nCorrect MedicineBatch ID: ${fields.batch_id}\n\nPlease copy the ID above and search again.`);
         setLoading(false);
         return;
       }
@@ -173,7 +173,7 @@ export default function TrackingPage() {
         console.warn("This means the batch was created but no StatusRecords exist yet");
         console.warn("Status records are created when updating shipping status");
         setMedicineCode(code);
-        alert("Batch tồn tại nhưng chưa có lịch sử giao dịch.\n\n• Hãy cập nhật trạng thái vận chuyển trên trang Carrier\n• Sau đó nhấn Refresh để xem timeline cập nhật!");
+        alert("Batch exists but has no transaction history yet.\n\n• Update shipping status on Carrier page\n• Then click Refresh to see updated timeline!");
         setLoading(false);
         return;
       }
@@ -191,7 +191,7 @@ export default function TrackingPage() {
 
       if (!records || !Array.isArray(records)) {
         console.error("Invalid records response:", records);
-        alert("Không thể lấy dữ liệu lịch sử!");
+        alert("Cannot retrieve history data!");
         setLoading(false);
         return;
       }
@@ -302,7 +302,7 @@ export default function TrackingPage() {
       // Check if no records were found
       console.log("Record tracking:", { hasCreated, hasShipping, hasDelivered });
       if (!hasCreated && !hasShipping && !hasDelivered) {
-        alert("Không tìm thấy dữ liệu hành trình!");
+        alert("No journey data found!");
       } else {
         console.log("Successfully processed records");
       }
@@ -311,7 +311,7 @@ export default function TrackingPage() {
       console.error("Tracking error:", err);
       const errorMessage = err instanceof Error ? err.message : String(err);
       setError(errorMessage);
-      alert(`Lỗi khi tải dữ liệu: ${errorMessage}\n\nKiểm tra ID và thử lại.`);
+      alert(`Error loading data: ${errorMessage}\n\nCheck ID and try again.`);
     } finally {
       setLoading(false);
     }
@@ -336,7 +336,7 @@ export default function TrackingPage() {
 
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-6">
-            <h1 className="text-2xl font-bold text-center">Tra cứu nguồn gốc thuốc</h1>
+            <h1 className="text-2xl font-bold text-center">Trace Pharmaceutical Origin</h1>
           </div>
 
           {/* Search Section */}
@@ -344,7 +344,7 @@ export default function TrackingPage() {
             <div className="flex gap-0">
               <input
                 type="text"
-                placeholder="Nhập Batch ID..."
+                placeholder="Enter Batch ID..."
                 className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                 value={batchId}
                 onChange={(e) => setBatchId(e.target.value)}
@@ -355,7 +355,7 @@ export default function TrackingPage() {
                 className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-r-lg transition-colors flex items-center gap-2"
               >
                 <Search className="w-5 h-5" />
-                {loading ? "Đang tìm..." : "Tìm"}
+                {loading ? "Searching..." : "Search"}
               </button>
             </div>
           </div>
@@ -364,28 +364,28 @@ export default function TrackingPage() {
           {medicineCode && (
             <div className="p-6 bg-blue-50 rounded-lg border border-blue-200 mb-6">
               <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-semibold text-blue-800">📦 Thông tin cơ bản</h3>
+                <h3 className="text-lg font-semibold text-blue-800">📦 Basic Information</h3>
                 <button
                   onClick={() => fetchTimeline()}
                   disabled={loading}
                   className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm rounded transition-colors flex items-center gap-1"
                 >
-                  🔄 {loading ? "Đang tải..." : "Refresh"}
+                  🔄 {loading ? "Loading..." : "Refresh"}
                 </button>
               </div>
               <div className="text-sm text-blue-700">
-                <p><strong>Mã thuốc:</strong> {medicineCode}</p>
+                <p><strong>Medicine Code:</strong> {medicineCode}</p>
                 <p><strong>Batch ID:</strong> {normalizedBatchId}</p>
-                <p><strong>Trạng thái:</strong> {
-                  currentStatus === 0 ? "Chưa khởi tạo" :
-                  currentStatus === 1 ? "Đã tạo (Sẵn sàng vận chuyển)" :
-                  currentStatus === 2 ? "Đang vận chuyển" :
-                  currentStatus === 3 ? "Đã giao" :
+                <p><strong>Status:</strong> {
+                  currentStatus === 0 ? "Not initialized" :
+                  currentStatus === 1 ? "Created (Ready for shipping)" :
+                  currentStatus === 2 ? "In transit" :
+                  currentStatus === 3 ? "Delivered" :
                   `Status ${currentStatus}`
                 }</p>
               </div>
               <div className="mt-3 p-3 bg-blue-100 rounded text-xs">
-                <p><strong>💡 Lưu ý:</strong> Nếu không thấy timeline, có nghĩa là batch chưa có lịch sử giao dịch. Hãy cập nhật trạng thái vận chuyển trên trang Carrier, sau đó nhấn Refresh để cập nhật dữ liệu.</p>
+                <p><strong>💡 Note:</strong> If you don't see the timeline, it means the batch has no transaction history yet. Update shipping status on the Carrier page, then click Refresh to update the data.</p>
               </div>
             </div>
           )}
@@ -393,7 +393,7 @@ export default function TrackingPage() {
           {/* Error Display */}
           {error && (
             <div className="p-6 bg-red-50 rounded-lg border border-red-200 mb-6">
-              <h3 className="text-lg font-semibold text-red-800 mb-2">❌ Lỗi</h3>
+              <h3 className="text-lg font-semibold text-red-800 mb-2">❌ Error</h3>
               <div className="text-sm text-red-700">
                 <p style={{whiteSpace: 'pre-line'}}>{error}</p>
                 <div className="mt-4 flex gap-2">
@@ -402,16 +402,16 @@ export default function TrackingPage() {
                     disabled={loading}
                     className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white text-sm rounded transition-colors"
                   >
-                    {loading ? "Đang thử lại..." : "🔄 Thử lại"}
+                    {loading ? "Retrying..." : "🔄 Retry"}
                   </button>
                   <button
                     onClick={() => setError("")}
                     className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm rounded transition-colors"
                   >
-                    Ẩn lỗi
+                    Hide Error
                   </button>
                 </div>
-                <p className="mt-2 text-xs">Kiểm tra console để biết thêm chi tiết.</p>
+                <p className="mt-2 text-xs">Check console for more details.</p>
               </div>
             </div>
           )}
@@ -423,15 +423,15 @@ export default function TrackingPage() {
             {!createdRecord && !shippingRecord && !deliveredRecord && !loading && medicineCode && (
               <div className="text-center py-16 text-gray-400">
                 <div className="text-4xl mb-4">📋</div>
-                <p className="text-lg">Đã tìm thấy thông tin cơ bản nhưng chưa có lịch sử giao dịch</p>
-                <p className="text-sm mt-2">Batch này có thể chưa được cập nhật trạng thái</p>
+                <p className="text-lg">Basic information found but no transaction history yet</p>
+                <p className="text-sm mt-2">This batch may not have been updated with status</p>
               </div>
             )}
 
             {!createdRecord && !shippingRecord && !deliveredRecord && !loading && !medicineCode && (
               <div className="text-center py-16 text-gray-400">
                 <div className="text-6xl mb-4">🔍</div>
-                <p className="text-lg">Nhập Batch ID để tra cứu hành trình thuốc</p>
+                <p className="text-lg">Enter Batch ID to trace medicine journey</p>
               </div>
             )}
 
@@ -452,7 +452,7 @@ export default function TrackingPage() {
 
                     {/* Content */}
                     <div className="bg-gray-50 rounded-lg p-4 ml-4 border border-gray-100">
-                      <h3 className="font-bold text-gray-800 text-lg mb-2">🏭 Sản xuất</h3>
+                      <h3 className="font-bold text-gray-800 text-lg mb-2">🏭 Manufacturing</h3>
                       <div className="text-sm text-gray-600 space-y-1">
                         <p>🏢 Tên thuốc: <span className="font-medium text-gray-900">{createdRecord.location}</span></p>
                         <p>💊 Mã thuốc: <span className="font-medium text-gray-900">{medicineCode}</span></p>
@@ -475,13 +475,13 @@ export default function TrackingPage() {
 
                     {/* Content */}
                     <div className="bg-gray-50 rounded-lg p-4 ml-4 border border-gray-100">
-                      <h3 className="font-bold text-gray-800 text-lg mb-2">🚚 Vận chuyển</h3>
+                      <h3 className="font-bold text-gray-800 text-lg mb-2">🚚 Shipping</h3>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>🚛 Đơn vị vận chuyển: <span className="font-medium text-gray-900">{shippingRecord.location}</span></p>
+                        <p>🚛 Carrier: <span className="font-medium text-gray-900">{shippingRecord.location}</span></p>
                         {shippingRecord.phone && (
-                          <p>📞 Số điện thoại: <span className="font-medium text-gray-900">{shippingRecord.phone}</span></p>
+                          <p>📞 Phone: <span className="font-medium text-gray-900">{shippingRecord.phone}</span></p>
                         )}
-                        <p>📅 Ngày vận chuyển: <span className="font-medium text-gray-900">{shippingRecord.time}</span></p>
+                        <p>📅 Shipping Date: <span className="font-medium text-gray-900">{shippingRecord.time}</span></p>
                       </div>
                     </div>
                   </div>
@@ -503,13 +503,13 @@ export default function TrackingPage() {
 
                     {/* Content */}
                     <div className="bg-green-50 rounded-lg p-4 ml-4 border border-green-200">
-                      <h3 className="font-bold text-gray-800 text-lg mb-2">🏥 Nhà thuốc</h3>
+                      <h3 className="font-bold text-gray-800 text-lg mb-2">🏥 Pharmacy</h3>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>🏢 Tên nhà thuốc: <span className="font-medium text-gray-900">{deliveredRecord.location}</span></p>
+                        <p>🏢 Pharmacy Name: <span className="font-medium text-gray-900">{deliveredRecord.location}</span></p>
                         {deliveredRecord.phone && (
-                          <p>📞 Số điện thoại: <span className="font-medium text-gray-900">{deliveredRecord.phone}</span></p>
+                          <p>📞 Phone: <span className="font-medium text-gray-900">{deliveredRecord.phone}</span></p>
                         )}
-                        <p>📅 Ngày nhận hàng: <span className="font-medium text-gray-900">{deliveredRecord.time}</span></p>
+                        <p>📅 Delivery Date: <span className="font-medium text-gray-900">{deliveredRecord.time}</span></p>
                       </div>
                     </div>
                   </div>

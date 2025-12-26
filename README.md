@@ -1,4 +1,4 @@
-# MedTrack - Hệ Thống Quản Lý Chuỗi Cung Ứng Thuốc Blockchain
+# MedTrack - Pharmaceutical Supply Chain Management System on Blockchain
 
 <div align="center">
   <img src="https://img.shields.io/badge/Sui-Blockchain-blue?style=for-the-badge&logo=sui" alt="Sui Blockchain"/>
@@ -8,81 +8,81 @@
   <img src="https://img.shields.io/badge/Move-Language-orange?style=for-the-badge" alt="Move Language"/>
 </div>
 
-## 📋 Mục Lục
+## 📋 Table of Contents
 
-- [🎯 Tổng Quan](#-tổng-quan)
-- [✨ Tính Năng Chính](#-tính-năng-chính)
-- [🏗️ Kiến Trúc Hệ Thống](#️-kiến-trúc-hệ-thống)
-- [🚀 Cài Đặt & Chạy](#-cài-đặt--chạy)
-- [📖 Hướng Dẫn Sử Dụng](#-hướng-dẫn-sử-dụng)
-- [🔧 Phát Triển](#-phát-triển)
-- [🔐 Bảo Mật](#-bảo-mật)
+- [🎯 Overview](#-overview)
+- [✨ Key Features](#-key-features)
+- [🏗️ System Architecture](#️-system-architecture)
+- [🚀 Installation & Setup](#-installation--setup)
+- [📖 User Guide](#-user-guide)
+- [🔧 Development](#-development)
+- [🔐 Security](#-security)
 - [🧪 Testing](#-testing)
 - [📚 API Documentation](#-api-documentation)
-- [🤝 Đóng Góp](#-đóng-góp)
+- [🤝 Contributing](#-contributing)
 - [📄 License](#-license)
 
 ---
 
-## 🎯 Tổng Quan
+## 🎯 Overview
 
-**MedTrack** là hệ thống quản lý chuỗi cung ứng thuốc tiên tiến sử dụng công nghệ blockchain Sui, đảm bảo tính minh bạch, bảo mật và truy xuất nguồn gốc 100% từ nhà sản xuất đến người tiêu dùng.
+**MedTrack** is an advanced pharmaceutical supply chain management system using Sui blockchain technology, ensuring 100% transparency, security, and traceability from manufacturer to consumer.
 
-### 🎯 Mục Tiêu
-- ✅ **Minh bạch tuyệt đối**: Mọi giao dịch được ghi trên blockchain
-- 🔒 **Bảo mật cao**: Mã hóa thông tin nhạy cảm với TweetNaCl
-- 🔍 **Truy xuất tức thời**: Tra cứu hành trình thuốc chỉ với 1 click
-- 📱 **Trải nghiệm tối ưu**: Giao diện thân thiện, responsive
-- ⚡ **Hiệu suất vượt trội**: Sử dụng Sui - blockchain nhanh nhất
+### 🎯 Objectives
+- ✅ **Absolute Transparency**: All transactions recorded on blockchain
+- 🔒 **High Security**: Sensitive information encrypted with TweetNaCl
+- 🔍 **Instant Traceability**: Track medicine journey with just 1 click
+- 📱 **Optimal Experience**: User-friendly, responsive interface
+- ⚡ **Superior Performance**: Uses Sui - the fastest blockchain
 
-### 🎯 Quy Trình Hoạt Động
+### 🎯 Workflow
 
 ```
 🏭 Producer → 🚚 Carrier → 🏥 Pharmacy → 👥 Consumer
      ↓         ↓         ↓         ↓
-  Tạo đơn   Cập nhật   Nhận hàng  Tra cứu
-  hàng      vận chuyển  hoàn tất   hành trình
+  Create     Update     Receive    Track
+  Order    Shipping   Completed   Journey
 ```
 
 ---
 
-## ✨ Tính Năng Chính
+## ✨ Key Features
 
-### 🏭 Nhà Sản Xuất (Producer)
-- **Tạo đơn hàng** với mã hóa thông tin nhạy cảm
-- **Mã thuốc chuẩn**: `PTS-2025-12` (Paracetamol-2025-tháng 12)
-- **Bảo mật tối đa**: Địa chỉ & số điện thoại được mã hóa
-- **Real-time tracking**: Theo dõi trạng thái đơn hàng
+### 🏭 Manufacturer (Producer)
+- **Create orders** with sensitive information encryption
+- **Standard medicine codes**: `PTS-2025-12` (Paracetamol-2025-month 12)
+- **Maximum security**: Address & phone encrypted
+- **Real-time tracking**: Monitor order status
 
-### 🚚 Đơn Vị Vận Chuyển (Carrier)
-- **Key pair generation**: Tạo cặp khóa công khai/bí mật tự động
-- **Giải mã thông tin**: Truy cập địa chỉ giao hàng an toàn
-- **Location tracking**: Cập nhật vị trí vận chuyển real-time
-- **Status updates**: Thông báo trạng thái cho tất cả bên liên quan
+### 🚚 Carrier
+- **Key pair generation**: Auto-generate public/private key pairs
+- **Decrypt information**: Secure access to delivery addresses
+- **Location tracking**: Real-time shipping location updates
+- **Status updates**: Notify all parties of status changes
 
-### 🏥 Nhà Thuốc (Pharmacy)
-- **Nhận hàng tức thì**: Xác nhận nhận hàng với 1 click
-- **Thông tin đầy đủ**: Lưu trữ tên nhà thuốc & thông tin liên hệ
-- **Delivery confirmation**: Hoàn tất chuỗi cung ứng
-- **Inventory management**: Tích hợp quản lý tồn kho
+### 🏥 Pharmacy
+- **Instant receipt**: Confirm delivery with 1 click
+- **Complete information**: Store pharmacy name & contact details
+- **Delivery confirmation**: Complete supply chain
+- **Inventory management**: Integrated inventory management
 
-### 🔍 Tra Cứu Hành Trình (Tracking)
-- **Batch ID lookup**: Tìm kiếm nhanh chóng theo ID lô thuốc
-- **Visual timeline**: Hiển thị hành trình với giao diện trực quan
-- **Contact information**: Thông tin liên hệ tại mỗi bước
-- **QR Code support**: Quét mã để tra cứu nhanh
+### 🔍 Tracking
+- **Batch ID lookup**: Quick search by medicine batch ID
+- **Visual timeline**: Display journey with intuitive interface
+- **Contact information**: Contact details at each step
+- **QR Code support**: Scan codes for quick lookup
 
 ---
 
-## 🏗️ Kiến Trúc Hệ Thống
+## 🏗️ System Architecture
 
-### 📁 Cấu Trúc Dự Án
+### 📁 Project Structure
 
 ```
 MedTrack/
 ├── medtrack/                    # 🏗️ Smart Contract (Move)
 │   ├── sources/
-│   │   └── supply_chain.move    # Logic chính của hệ thống
+│   │   └── supply_chain.move    # Main system logic
 │   ├── tests/                   # 🧪 Unit tests
 │   ├── Move.toml               # ⚙️ Dependencies & config
 │   └── Move.lock               # 🔒 Lock file
@@ -92,10 +92,10 @@ MedTrack/
 │   ├── src/
 │   │   ├── components/          # 🧩 Reusable components
 │   │   ├── pages/               # 📄 Main pages
-│   │   │   ├── ProducerPage.tsx # 🏭 Trang nhà sản xuất
-│   │   │   ├── CarrierPage.tsx  # 🚚 Trang vận chuyển
-│   │   │   ├── PharmacyPage.tsx # 🏥 Trang nhà thuốc
-│   │   │   └── TrackingPage.tsx # 🔍 Trang tra cứu
+│   │   │   ├── ProducerPage.tsx # 🏭 Manufacturer page
+│   │   │   ├── CarrierPage.tsx  # 🚚 Carrier page
+│   │   │   ├── PharmacyPage.tsx # 🏥 Pharmacy page
+│   │   │   └── TrackingPage.tsx # 🔍 Tracking page
 │   │   ├── utils/               # 🛠️ Utilities
 │   │   ├── constants.ts         # ⚙️ App configuration
 │   │   ├── App.tsx             # 🎯 Main app component
@@ -155,27 +155,27 @@ graph TB
 
 ---
 
-## 🚀 Cài Đặt & Chạy
+## 🚀 Installation & Setup
 
-### 📋 Yêu Cầu Hệ Thống
+### 📋 System Requirements
 
-- **Node.js**: 18.0.0 hoặc cao hơn
+- **Node.js**: 18.0.0 or higher
 - **Sui CLI**: Latest version
 - **Git**: For version control
-- **Browser**: Chrome/Firefox với Sui Wallet extension
+- **Browser**: Chrome/Firefox with Sui Wallet extension
 
-### ⚡ Chạy Nhanh (Quick Start)
+### ⚡ Quick Start
 
 ```bash
 # 1. Clone repository
 git clone <repository-url>
 cd MedTrack
 
-# 2. Cài đặt dependencies cho frontend
+# 2. Install frontend dependencies
 cd medtrack-fe
 npm install
 
-# 3. Chạy development server
+# 3. Run development server
 npm run dev
 
 # 4. Mở browser và truy cập
@@ -193,7 +193,7 @@ sui move build
 # 2. Deploy to testnet
 sui client publish --gas-budget 200000000
 
-# 3. Update PACKAGE_ID trong constants.ts
+# 3. Update PACKAGE_ID in constants.ts
 ```
 
 #### Frontend
@@ -211,7 +211,7 @@ npm run build
 
 ### 🔧 Environment Configuration
 
-Tạo file `.env.local` trong thư mục `medtrack-fe/`:
+Create `.env.local` file in the `medtrack-fe/` directory:
 
 ```env
 # Network configuration
@@ -227,100 +227,100 @@ VITE_ENABLE_DEBUG=true
 
 ---
 
-## 📖 Hướng Dẫn Sử Dụng
+## 📖 User Guide
 
-### 🔑 Chuẩn Bị Ban Đầu
+### 🔑 Initial Setup
 
-1. **Cài đặt Sui Wallet**
-   - Tải Sui Wallet extension
-   - Tạo hoặc import ví
-   - Đảm bảo có đủ SUI testnet
+1. **Install Sui Wallet**
+   - Download Sui Wallet extension
+   - Create or import wallet
+   - Ensure sufficient SUI testnet balance
 
-2. **Kết nối ứng dụng**
-   - Truy cập http://localhost:5173/
+2. **Connect Application**
+   - Visit http://localhost:5173/
    - Click "Connect Wallet"
-   - Chọn ví và approve
+   - Select wallet and approve
 
-3. **Kiểm tra ủy quyền**
-   - Địa chỉ ví phải có trong danh sách cho phép
-   - Liên hệ admin nếu chưa được ủy quyền
+3. **Check Authorization**
+   - Wallet address must be in allowed list
+   - Contact admin if not authorized
 
-### 🏭 Quy Trình Tạo Đơn Hàng
+### 🏭 Order Creation Process
 
-#### Bước 1: Truy cập Producer Page
+#### Step 1: Access Producer Page
 ```
 URL: http://localhost:5173/#/producer
 ```
 
-#### Bước 2: Nhận Public Key từ Carrier
-- Carrier tạo key pair và gửi Public Key
-- Producer paste Public Key vào form
+#### Step 2: Receive Public Key from Carrier
+- Carrier generates key pair and sends Public Key
+- Producer pastes Public Key into form
 
-#### Bước 3: Điền thông tin
-- **Mã thuốc**: `PTS-2025-12`
-- **Tên công ty**: `Công ty Dược phẩm ABC`
-- **Số điện thoại**: `0896739545`
-- **Công ty nhận**: `Nhà thuốc XYZ`
-- **Địa chỉ giao**: `123 Đường ABC, Phường DEF...`
-- **Số điện thoại nhận**: `0987654321`
+#### Step 3: Fill Information
+- **Medicine Code**: `PTS-2025-12`
+- **Company Name**: `ABC Pharmaceutical Company`
+- **Phone**: `0896739545`
+- **Receiver Company**: `XYZ Pharmacy`
+- **Delivery Address**: `123 ABC Street, DEF Ward...`
+- **Receiver Phone**: `0987654321`
 
-#### Bước 4: Tạo đơn hàng
-- Click "🔒 Mã hóa & Gửi lên Blockchain"
-- Approve transaction trong ví
-- Nhận Batch ID
+#### Step 4: Create Order
+- Click "🔒 Encrypt & Send to Blockchain"
+- Approve transaction in wallet
+- Receive Batch ID
 
-### 🚚 Quy Trình Vận Chuyển
+### 🚚 Shipping Process
 
-#### Bước 1: Tạo Key Pair
+#### Step 1: Generate Key Pair
 ```
 URL: http://localhost:5173/#/carrier
 ```
-- Click "🆕 Tạo Cặp Khóa Mới"
-- **Quan trọng**: Lưu Private Key vào nơi an toàn
-- Copy Public Key gửi cho Producer
+- Click "🆕 Generate New Key"
+- **Important**: Save Private Key in a secure location
+- Copy Public Key and send to Producer
 
-#### Bước 2: Nhận đơn hàng
-- Nhận Batch ID từ Producer
-- Paste vào form và giải mã
+#### Step 2: Receive Order
+- Receive Batch ID from Producer
+- Paste into form and decrypt
 
-#### Bước 3: Cập nhật vận chuyển
-- Điền thông tin vận chuyển
-- Click "📦 Xác Nhận Đang Giao Hàng"
+#### Step 3: Update Shipping
+- Fill shipping information
+- Click "📦 Confirm In Transit"
 
-### 🏥 Quy Trình Nhận Hàng
+### 🏥 Delivery Process
 
-#### Bước 1: Truy cập Pharmacy Page
+#### Step 1: Access Pharmacy Page
 ```
 URL: http://localhost:5173/#/pharmacy
 ```
 
-#### Bước 2: Xác nhận nhận hàng
-- **Batch ID**: Từ Producer/Carrier
-- **Tên nhà thuốc**: `Nhà thuốc ABC`
-- **Số điện thoại**: `0987654321`
+#### Step 2: Confirm Delivery
+- **Batch ID**: From Producer/Carrier
+- **Pharmacy Name**: `ABC Pharmacy`
+- **Phone**: `0987654321`
 
-#### Bước 3: Hoàn tất
-- Click "✅ Xác nhận đã nhận đơn hàng"
+#### Step 3: Complete
+- Click "✅ Confirm Order Received"
 
-### 🔍 Tra Cứu Hành Trình
+### 🔍 Tracking Journey
 
-#### Bước 1: Truy cập Tracking Page
+#### Step 1: Access Tracking Page
 ```
 URL: http://localhost:5173/#/tracking
 ```
 
-#### Bước 2: Tìm kiếm
+#### Step 2: Search
 - Paste Batch ID
-- Click "🔍 Tìm"
+- Click "🔍 Search"
 
-#### Bước 3: Xem kết quả
-- Timeline đầy đủ của lô thuốc
-- Thông tin liên hệ tại mỗi bước
-- Trạng thái hiện tại
+#### Step 3: View Results
+- Complete medicine batch timeline
+- Contact information at each step
+- Current status
 
 ---
 
-## 🔧 Phát Triển
+## 🔧 Development
 
 ### 🏗️ Development Workflow
 
@@ -386,7 +386,7 @@ src/
 
 ---
 
-## 🔐 Bảo Mật
+## 🔐 Security
 
 ### 👛 Wallet Authorization
 
@@ -506,7 +506,7 @@ public struct StatusRecord has key {
 
 ---
 
-## 🤝 Đóng Góp
+## 🤝 Contributing
 
 Chúng tôi hoan nghênh mọi đóng góp! Vui lòng đọc [CONTRIBUTING.md](CONTRIBUTING.md) để biết chi tiết.
 
@@ -543,7 +543,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**🎉 MedTrack - Nâng Tầm An Toàn Thuốc Cho Tương Lai!**
+**🎉 MedTrack - Elevating Medicine Safety for the Future!**
 
 *Built with ❤️ for a safer pharmaceutical supply chain*
 

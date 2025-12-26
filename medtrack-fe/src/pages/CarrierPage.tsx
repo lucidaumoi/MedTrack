@@ -103,14 +103,14 @@ export default function CarrierPage() {
     try {
       // Wallet authorization check
       if (!currentAccount) {
-        alert("❌ Vui lòng kết nối ví Sui trước!");
+        alert("❌ Please connect your Sui wallet first!");
         return;
       }
 
 
       // Validate inputs
       if (!batchId) {
-        alert("❌ Vui lòng nhập Batch ID!");
+        alert("❌ Please enter Batch ID!");
         return;
       }
 
@@ -123,7 +123,7 @@ export default function CarrierPage() {
         });
 
         if (!batchObj.data?.content) {
-          alert("❌ Batch không tồn tại!");
+          alert("❌ Batch does not exist!");
           return;
         }
 
@@ -133,22 +133,22 @@ export default function CarrierPage() {
         console.log("Batch current status:", currentStatus);
 
         if (currentStatus !== 1) {
-          const statusMsg = currentStatus === 0 ? "chưa được khởi tạo" :
-                           currentStatus === 2 ? "đang vận chuyển" :
-                           currentStatus === 3 ? "đã giao" :
+          const statusMsg = currentStatus === 0 ? "not initialized" :
+                           currentStatus === 2 ? "in transit" :
+                           currentStatus === 3 ? "delivered" :
                            `status ${currentStatus}`;
 
-          alert(`❌ Không thể cập nhật vận chuyển!\n\nBatch hiện tại ở trạng thái: ${statusMsg}\n\nChỉ có thể cập nhật batch ở trạng thái "Đã tạo".`);
+          alert(`❌ Cannot update shipping!\n\nCurrent batch status: ${statusMsg}\n\nCan only update batch with "Created" status.`);
           return;
         }
       } catch (statusError) {
         console.error("Error checking batch status:", statusError);
-        alert("❌ Không thể kiểm tra trạng thái batch. Vui lòng thử lại.");
+        alert("❌ Cannot check batch status. Please try again.");
         return;
       }
 
       if (!decryptedInfo) {
-        alert("❌ Vui lòng giải mã thông tin giao hàng trước!");
+        alert("❌ Please decrypt delivery information first!");
         return;
       }
 
@@ -200,7 +200,7 @@ export default function CarrierPage() {
             console.log("Transaction events:", (result as any).events);
 
             // Wait for transaction to be confirmed
-            alert("✅ Đã cập nhật trạng thái vận chuyển thành công!\n\n⏳ Đang chờ transaction được confirm trên blockchain...\n\nSau 10-15 giây, hãy sang trang Tracking và nhấn Refresh để xem timeline cập nhật.");
+            alert("✅ Shipping status updated successfully!\n\n⏳ Waiting for transaction confirmation on blockchain...\n\nAfter 10-15 seconds, go to Tracking page and click Refresh to see updated timeline.");
             // Reset form
             setBatchId("");
             setEncryptedData("");
@@ -211,7 +211,7 @@ export default function CarrierPage() {
           },
           onError: (error) => {
             console.error("Shipping update error:", error);
-            alert("❌ Lỗi cập nhật vận chuyển: " + (error instanceof Error ? error.message : String(error)));
+            alert("❌ Shipping update error: " + (error instanceof Error ? error.message : String(error)));
           }
         }
       );
@@ -285,13 +285,13 @@ export default function CarrierPage() {
                 className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 mb-4"
               >
                 <Key className="w-4 h-4" />
-                Tạo khóa mới
+                Generate New Key
               </button>
 
               {/* Public Key */}
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Public Key (Gửi cho Producer)
+                  Public Key (Send to Producer)
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -299,7 +299,7 @@ export default function CarrierPage() {
                     readOnly
                     value={publicKey}
                     className="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md font-mono text-sm"
-                    placeholder="Chưa tạo khóa..."
+                    placeholder="Key not generated yet..."
                   />
                   <button
                     onClick={() => navigator.clipboard.writeText(publicKey)}
@@ -315,7 +315,7 @@ export default function CarrierPage() {
               {/* Private Key */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Private Key (Giữ bí mật)
+                  Private Key (Keep Secret)
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -323,7 +323,7 @@ export default function CarrierPage() {
                     readOnly
                     value={privateKey}
                     className="flex-1 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md font-mono text-sm"
-                    placeholder="Chưa tạo khóa..."
+                    placeholder="Key not generated yet..."
                   />
                   <button
                     onClick={() => setShowPrivateKey(!showPrivateKey)}
@@ -350,7 +350,7 @@ export default function CarrierPage() {
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
               <div className="bg-blue-500 text-white p-4">
-                <h2 className="text-xl font-bold">Tiếp nhận & cập nhật</h2>
+                <h2 className="text-xl font-bold">Receive & Update</h2>
               </div>
               <div className="p-6 space-y-4">
 
@@ -364,21 +364,21 @@ export default function CarrierPage() {
                     value={batchId}
                     onChange={(e) => setBatchId(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Nhập Batch ID từ Producer..."
+                    placeholder="Enter Batch ID from Producer..."
                   />
                 </div>
 
                 {/* Encrypted Data */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Chuỗi mã hóa <span className="text-red-500">*</span>
+                    Encrypted Data <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     rows={4}
                     value={encryptedData}
                     onChange={(e) => setEncryptedData(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Dán chuỗi mã hóa từ Producer..."
+                    placeholder="Paste encrypted data from Producer..."
                   />
                 </div>
 
@@ -389,13 +389,13 @@ export default function CarrierPage() {
                   className="w-full bg-blue-400 hover:bg-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
                   <Lock className="w-4 h-4" />
-                  Giải mã thông tin giao hàng
+                  Decrypt Delivery Information
                 </button>
 
                 {/* Decrypted Result */}
                 {decryptedInfo && (
                   <div className="bg-white border border-gray-300 rounded-lg p-4">
-                    <h3 className="font-medium text-gray-900 mb-2">📍 Thông tin giao hàng đã giải mã:</h3>
+                    <h3 className="font-medium text-gray-900 mb-2">📍 Decrypted Delivery Information:</h3>
                     <textarea
                       readOnly
                       value={decryptedInfo}
@@ -408,44 +408,44 @@ export default function CarrierPage() {
                 {/* Shipping Update Form */}
                 {decryptedInfo && (
                   <div className="space-y-4 pt-4 border-t border-gray-200">
-                    <h3 className="font-medium text-gray-900">🚚 Thông tin vận chuyển:</h3>
+                    <h3 className="font-medium text-gray-900">🚚 Shipping Information:</h3>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Tên Shipper <span className="text-red-500">*</span>
+                        Shipper Name <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={shipperName}
                         onChange={(e) => setShipperName(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Tên người giao hàng..."
+                        placeholder="Delivery person name..."
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        SĐT Shipper <span className="text-red-500">*</span>
+                        Shipper Phone <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="tel"
                         value={shipperPhone}
                         onChange={(e) => setShipperPhone(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Số điện thoại người giao..."
+                        placeholder="Delivery person phone..."
                       />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Vị trí giao hàng <span className="text-red-500">*</span>
+                        Delivery Location <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         value={deliveryLocation}
                         onChange={(e) => setDeliveryLocation(e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Địa điểm giao hàng..."
+                        placeholder="Delivery location..."
                       />
                     </div>
 
@@ -456,7 +456,7 @@ export default function CarrierPage() {
                       className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-full transition-colors flex items-center justify-center gap-2 shadow-lg"
                     >
                       <Truck className="w-5 h-5" />
-                      Xác nhận đang vận chuyển
+                      Confirm In Transit
                     </button>
                   </div>
                 )}

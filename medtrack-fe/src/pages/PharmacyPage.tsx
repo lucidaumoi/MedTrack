@@ -75,7 +75,7 @@ export default function PharmacyPage() {
         {
           onSuccess: (result) => {
             console.log("Delivery confirmation success:", result);
-            alert("✅ Đã xác nhận nhận hàng thành công!");
+            alert("✅ Delivery confirmed successfully!");
 
             // Reset form
             setBatchId("");
@@ -84,14 +84,14 @@ export default function PharmacyPage() {
           },
           onError: (error) => {
             console.error("Delivery confirmation error:", error);
-            alert("❌ Lỗi xác nhận nhận hàng: " + (error instanceof Error ? error.message : String(error)));
+            alert("❌ Delivery confirmation error: " + (error instanceof Error ? error.message : String(error)));
           }
         }
       );
 
     } catch (error) {
       console.error("Confirm receive error:", error);
-      alert("❌ Lỗi: " + (error instanceof Error ? error.message : String(error)));
+      alert("❌ Error: " + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -157,19 +157,19 @@ export default function PharmacyPage() {
                     value={batchId}
                     onChange={(e) => setBatchId(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-green-500 outline-none transition-all"
-                    placeholder="Nhập Batch ID để xác nhận đơn hàng"
+                    placeholder="Enter Batch ID to confirm order"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tên nhà thuốc <span className="text-red-500">*</span>
+                    Pharmacy Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={pharmacyName}
                     onChange={(e) => setPharmacyName(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-green-500 outline-none transition-all"
-                    placeholder="Nhập tên nhà thuốc..."
+                    placeholder="Enter pharmacy name..."
                   />
                 </div>
 
@@ -182,7 +182,7 @@ export default function PharmacyPage() {
                     value={pharmacyPhone}
                     onChange={(e) => setPharmacyPhone(e.target.value)}
                     className="w-full border border-gray-300 rounded-lg p-4 focus:ring-2 focus:ring-green-500 outline-none transition-all"
-                    placeholder="Nhập số điện thoại..."
+                    placeholder="Enter phone number..."
                   />
                 </div>
 
@@ -193,12 +193,12 @@ export default function PharmacyPage() {
                     disabled={!batchId || !pharmacyName || !pharmacyPhone}
                     className="w-full bg-green-500 hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-full transition-colors shadow-lg text-lg"
                   >
-                    ✅ Xác nhận đã nhận đơn hàng
+                    ✅ Confirm Order Received
                   </button>
                 </div>
 
                 <p className="text-xs text-center text-gray-500 mt-6">
-                  Vui lòng điền đầy đủ thông tin để xác nhận nhận hàng
+                  Please fill in all information to confirm receipt
                 </p>
               </div>
             </div>

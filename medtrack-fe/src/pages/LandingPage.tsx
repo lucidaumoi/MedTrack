@@ -22,8 +22,8 @@ export default function LandingPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p className="text-slate-600 font-medium">Đang chuyển hướng vào Dashboard...</p>
-          <p className="text-sm text-slate-500">Ví đã được kết nối thành công</p>
+          <p className="text-slate-600 font-medium">Redirecting to Dashboard...</p>
+          <p className="text-sm text-slate-500">Wallet connected successfully</p>
         </div>
       </div>
     );
@@ -46,13 +46,13 @@ export default function LandingPage() {
         <div className="bg-white p-12 rounded-3xl shadow-xl max-w-3xl w-full text-center space-y-8 border border-slate-100">
           <div className="space-y-6">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-800 leading-tight">
-              Hệ thống truy xuất nguồn gốc dược phẩm trên  Sui Blockchain{" "}
+              Pharmaceutical Supply Chain Traceability System on Sui Blockchain{" "}
             </h1>
           </div>
           <div className="space-y-4">
             <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Theo dõi hành trình của thuốc từ nhà sản xuất đến người tiêu dùng.
-              Đảm bảo tính minh bạch và truy xuất nguồn gốc trên nền tảng blockchain.
+              Track the journey of medicines from manufacturer to consumer.
+              Ensure transparency and traceability on the blockchain platform.
             </p>
 
             <div className="flex justify-center pt-6">
@@ -67,20 +67,20 @@ export default function LandingPage() {
 
             <div className="pt-4 space-y-2">
               <p className="text-sm text-slate-500">
-                Kết nối ví Sui để bắt đầu sử dụng hệ thống
+                Connect your Sui wallet to start using the system
               </p>
               <div className="flex justify-center gap-4 text-xs text-slate-400">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                  Bảo mật cao
+                  High Security
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                  Minh bạch
+                  Transparent
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-                  Truy xuất tức thì
+                  Instant Traceability
                 </span>
               </div>
             </div>
@@ -91,7 +91,7 @@ export default function LandingPage() {
       {/* Footer */}
       <div className="p-6 border-t border-slate-200 bg-white">
         <div className="text-center text-sm text-slate-500">
-          <p>© 2025 MedTrack - Hệ thống quản lý chuỗi cung ứng dược phẩm</p>
+          <p>© 2025 MedTrack - Pharmaceutical Supply Chain Management System</p>
         </div>
       </div>
     </div>

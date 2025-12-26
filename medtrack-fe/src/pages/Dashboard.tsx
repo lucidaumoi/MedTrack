@@ -9,25 +9,25 @@ export default function Dashboard({ onSelectRole }: DashboardProps) {
   const roles = [
     {
       id: 'producer',
-      label: 'Nhà Máy',
+      label: 'Manufacturer',
       icon: Factory,
       color: 'text-blue-600'
     },
     {
       id: 'carrier',
-      label: 'Vận Chuyển',
+      label: 'Carrier',
       icon: Truck,
       color: 'text-green-600'
     },
     {
       id: 'pharmacy',
-      label: 'Nhà Thuốc',
+      label: 'Pharmacy',
       icon: BriefcaseMedical,
       color: 'text-purple-600'
     },
     {
       id: 'tracking',
-      label: 'Người Dùng',
+      label: 'Consumer',
       icon: User,
       color: 'text-orange-600'
     }
@@ -50,8 +50,8 @@ export default function Dashboard({ onSelectRole }: DashboardProps) {
       {/* Main Headline */}
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-          Hệ thống truy xuất nguồn gốc<br />
-          <span className="text-blue-200">dược phẩm</span> trên Sui Blockchain
+          Pharmaceutical Traceability<br />
+          <span className="text-blue-200">System</span> on Sui Blockchain
         </h1>
       </div>
 
@@ -80,7 +80,7 @@ export default function Dashboard({ onSelectRole }: DashboardProps) {
 
       {/* Footer */}
       <div className="text-center mt-16 text-blue-100">
-        <p className="text-sm">Chọn vai trò của bạn để tiếp tục</p>
+        <p className="text-sm">Select your role to continue</p>
       </div>
     </div>
   );

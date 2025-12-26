@@ -61,14 +61,14 @@ export default function ProducerPage() {
     try {
       // Wallet authorization check
       if (!currentAccount) {
-        alert("❌ Vui lòng kết nối ví Sui trước!");
+        alert("❌ Please connect your Sui wallet first!");
         return;
       }
 
 
       // Validate carrier public key
       if (!carrierPublicKey) {
-        alert("Vui lòng nhập Public Key của Carrier để mã hóa!");
+        alert("Please enter the Carrier's Public Key for encryption!");
         return;
       }
 
@@ -243,17 +243,17 @@ export default function ProducerPage() {
                 setShowModal(true);
               } else {
                 console.error("❌ Batch ID not found in transaction details:", txDetails);
-                alert("⚠️ Transaction thành công nhưng không tìm thấy Batch ID. Vui lòng kiểm tra log console.");
+                alert("⚠️ Transaction successful but Batch ID not found. Please check console logs.");
               }
 
             } catch (detailError) {
               console.error("Error fetching transaction details:", detailError);
-              alert(`⚠️ Transaction thành công nhưng không lấy được chi tiết Batch ID.\n\nLỗi: ${(detailError as Error).message}`);
+              alert(`⚠️ Transaction successful but could not retrieve Batch ID details.\n\nError: ${(detailError as Error).message}`);
             }
           },
           onError: (error) => {
             console.error("Transaction error:", error);
-            alert("❌ Lỗi khi thực hiện transaction: " + (error as Error).message);
+            alert("❌ Transaction execution error: " + (error as Error).message);
           }
         }
       );
@@ -292,7 +292,7 @@ export default function ProducerPage() {
           )}
           {!currentAccount && (
             <div className="mt-2 text-sm text-red-600">
-              ⚠️ Vui lòng kết nối ví Sui để sử dụng hệ thống
+              ⚠️ Please connect your Sui wallet to use the system
             </div>
           )}
         </div>
@@ -314,41 +314,41 @@ export default function ProducerPage() {
             {/* Card 1: Thông tin thuốc */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
               <div className="bg-[#3b82f6] text-white p-3">
-                <h2 className="text-xl font-bold">💊 Thông tin thuốc</h2>
+                <h2 className="text-xl font-bold">💊 Medicine Information</h2>
               </div>
               <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Mã thuốc <span className="text-red-500">*</span>
+                    Medicine Code <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="VD: PhT-2025-12"
+                    placeholder="Ex: PhT-2025-12"
                     value={drugId}
                     onChange={e => setDrugId(e.target.value)}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Tên thuốc <span className="text-red-500">*</span>
+                    Medicine Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="VD: Paracetamol"
+                    placeholder="Ex: Paracetamol"
                     value={producerName}
                     onChange={e => setProducerName(e.target.value)}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-2">
-                    SĐT <span className="text-red-500">*</span>
+                    Phone <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="VD: 0987654321"
+                    placeholder="Ex: 0987654321"
                     value={producerPhone}
                     onChange={e => setProducerPhone(e.target.value)}
                   />
@@ -359,43 +359,43 @@ export default function ProducerPage() {
             {/* Card 2: Thông tin nhận */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
               <div className="bg-[#3b82f6] text-white p-3">
-                <h2 className="text-xl font-bold">📦 Thông tin nhận</h2>
+                <h2 className="text-xl font-bold">📦 Receiver Information</h2>
               </div>
               <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Tên nơi nhận <span className="text-red-500">*</span>
+                    Receiver Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="VD: Nhà thuốc ABC"
+                    placeholder="Ex: Pharmacy ABC"
                     value={receiverCompany}
                     onChange={e => setReceiverCompany(e.target.value)}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Địa chỉ giao hàng <span className="text-red-500">*</span>
-                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Mã hóa</span>
+                    Delivery Address <span className="text-red-500">*</span>
+                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Encrypted</span>
                   </label>
                   <input
                     type="text"
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="VD: 123 Đường ABC, Quận 1, TP.HCM"
+                    placeholder="Ex: 123 ABC Street, District 1, Ho Chi Minh City"
                     value={receiverAddress}
                     onChange={e => setReceiverAddress(e.target.value)}
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-2">
-                    SĐT <span className="text-red-500">*</span>
-                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Mã hóa</span>
+                    Phone <span className="text-red-500">*</span>
+                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Encrypted</span>
                   </label>
                   <input
                     type="tel"
                     className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="VD: 0987654321"
+                    placeholder="Ex: 0987654321"
                     value={receiverPhone}
                     onChange={e => setReceiverPhone(e.target.value)}
                   />
@@ -407,15 +407,15 @@ export default function ProducerPage() {
           {/* Card 3: Mã bảo mật - Full width */}
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-8">
             <div className="bg-[#3b82f6] text-white p-3">
-              <h2 className="text-xl font-bold">🔐 Mã bảo mật</h2>
+              <h2 className="text-xl font-bold">🔐 Security Code</h2>
             </div>
             <div className="p-6">
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-blue-900 font-medium mb-2">📋 Hướng dẫn lấy Public Key:</p>
+                <p className="text-sm text-blue-900 font-medium mb-2">📋 How to get Public Key:</p>
                 <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside ml-2">
-                  <li>Liên hệ với bên vận chuyển (Carrier) để lấy Public Key của họ</li>
-                  <li>Public Key thường là một chuỗi dài bắt đầu bằng "0x..." hoặc dạng hex</li>
-                  <li>Chỉ có Carrier mới có thể giải mã thông tin địa chỉ và số điện thoại</li>
+                  <li>Contact the carrier to get their Public Key</li>
+                  <li>Public Key is usually a long string starting with "0x..." or hex format</li>
+                  <li>Only the Carrier can decrypt address and phone information</li>
                 </ol>
               </div>
               <div>
@@ -440,11 +440,11 @@ export default function ProducerPage() {
               disabled={!drugId || !producerName || !producerPhone || !receiverCompany || !receiverAddress || !receiverPhone || !carrierPublicKey}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-12 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl disabled:shadow-none"
             >
-              🔒 Tạo đơn
+              🔒 Create Order
             </button>
           </div>
           <p className="text-xs text-center text-gray-500 mt-4">
-            Vui lòng điền đầy đủ tất cả các trường có dấu <span className="text-red-500">*</span>
+            Please fill in all required fields marked with <span className="text-red-500">*</span>
           </p>
         </div>
       </div>
@@ -461,7 +461,7 @@ export default function ProducerPage() {
 
             {/* Blue Header */}
             <div className="bg-blue-500 py-3 text-center">
-              <h3 className="text-white font-bold text-lg uppercase">Xuất hóa đơn</h3>
+              <h3 className="text-white font-bold text-lg uppercase">Order Created</h3>
             </div>
 
             {/* Body */}
@@ -478,7 +478,7 @@ export default function ProducerPage() {
               {/* Encrypted Data Section (Optional - collapsed) */}
               <details className="group">
                 <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700 flex items-center gap-1">
-                  <span>📋 Chuỗi mã hóa</span>
+                  <span>📋 Encrypted Data</span>
                   <svg className="w-3 h-3 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -494,7 +494,7 @@ export default function ProducerPage() {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(encryptedResult || '');
-                        alert("✅ Đã copy chuỗi mã hóa!");
+                        alert("✅ Encrypted data copied!");
                       }}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded text-xs transition-all"
                     >
@@ -503,7 +503,7 @@ export default function ProducerPage() {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(`Batch ID: ${batchId}\n\nEncrypted Data: ${encryptedResult}`);
-                        alert("✅ Đã copy đầy đủ thông tin!");
+                        alert("✅ Complete information copied!");
                       }}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-xs transition-all"
                     >
@@ -519,7 +519,7 @@ export default function ProducerPage() {
                   onClick={() => setShowModal(false)}
                   className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors"
                 >
-                  Đóng
+                  Close
                 </button>
                 <button
                   onClick={() => {
@@ -537,7 +537,7 @@ export default function ProducerPage() {
                   }}
                   className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                 >
-                  Tạo đơn mới
+                  Create New Order
                 </button>
               </div>
             </div>
