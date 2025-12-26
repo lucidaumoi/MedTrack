@@ -6,6 +6,7 @@ interface DashboardProps {
   onSelectRole: (role: string) => void;
 }
 
+const Dashboard = ({ onSelectRole }: DashboardProps) => {
   const roles = [
     {
       id: 'producer',
@@ -103,4 +104,6 @@ interface DashboardProps {
       </div>
     </div>
   );
-}
+};
+
+export default Dashboard;
