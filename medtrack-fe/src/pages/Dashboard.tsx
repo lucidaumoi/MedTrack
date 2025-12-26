@@ -50,8 +50,8 @@ export default function Dashboard({ onSelectRole }: DashboardProps) {
       {/* Main Headline */}
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-          Pharmaceutical Traceability<br />
-          <span className="text-blue-200">System</span> on Sui Blockchain
+          Hệ thống truy xuất nguồn gốc<br />
+          <span className="text-blue-200">dược phẩm</span> trên Sui Blockchain
         </h1>
       </div>
 
