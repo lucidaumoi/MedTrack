@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient } from "@mysten/dapp-kit";
+import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient, ConnectButton } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
+import { MIST_PER_SUI } from "@mysten/sui/utils";
 import { PACKAGE_ID } from "../constants";
-import { Key, Eye, EyeOff, Copy, Lock, Truck, ArrowLeft } from "lucide-react";
+import { Key, Eye, EyeOff, Copy, Lock, Truck } from "lucide-react";
 import nacl from 'tweetnacl';
 import naclUtil from 'tweetnacl-util';
+import logoPng from '../assets/logo.png'; // ✅ Import Logo
+
 import {
   validateCarrierName,
   validatePhoneNumber,
-  validateAddress
+  validateAddress,
+  validateBatchId,
+  normalizeBatchId
 } from '../utils/validation';
 
 // Helper function to generate keypair for encryption
@@ -50,6 +55,33 @@ export default function CarrierPage() {
   const suiClient = useSuiClient();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
   const currentAccount = useCurrentAccount();
+
+  // Balance state
+  const [balance, setBalance] = useState("0");
+
+  // Function to fetch SUI balance
+  const fetchBalance = async () => {
+    if (currentAccount) {
+      try {
+        const result = await suiClient.getBalance({ owner: currentAccount.address });
+        const val = Number(result.totalBalance) / Number(MIST_PER_SUI);
+        setBalance(val.toFixed(2));
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+        setBalance("0");
+      }
+    } else {
+      setBalance("0");
+    }
+  };
+
+  // Auto-fetch balance when account changes
+  useEffect(() => {
+    fetchBalance();
+    // Tự động fetch lại mỗi 5 giây
+    const interval = setInterval(fetchBalance, 5000);
+    return () => clearInterval(interval);
+  }, [suiClient, currentAccount]);
 
   // Key management states
   const [publicKey, setPublicKey] = useState("");
@@ -108,17 +140,27 @@ export default function CarrierPage() {
       }
 
 
-      // Validate inputs
+      // Validate and normalize batch ID
       if (!batchId) {
         alert("❌ Please enter Batch ID!");
         return;
       }
 
+      const batchIdValidation = validateBatchId(batchId);
+      if (!batchIdValidation.isValid) {
+        alert("❌ " + batchIdValidation.error);
+        return;
+      }
+
+      const normalizedBatchId = normalizeBatchId(batchId);
+      console.log("Original batchId:", batchId);
+      console.log("Normalized batchId:", normalizedBatchId);
+
       // Check batch status first
       try {
         console.log("Checking batch status before update...");
         const batchObj = await suiClient.getObject({
-          id: batchId,
+          id: normalizedBatchId,
           options: { showContent: true },
         });
 
@@ -178,7 +220,7 @@ export default function CarrierPage() {
       txb.moveCall({
         target: `${PACKAGE_ID}::supply_chain::update_record_shipping`,
         arguments: [
-          txb.object(batchId), // MedicineBatch object
+          txb.object(normalizedBatchId), // MedicineBatch object
           txb.pure.string(shipperName),
           txb.pure.string(shipperPhone),
           txb.pure.string(deliveryLocation),
@@ -199,8 +241,11 @@ export default function CarrierPage() {
             console.log("Transaction objectChanges:", (result as any).objectChanges);
             console.log("Transaction events:", (result as any).events);
 
+            // Refresh balance after transaction (gas fee deduction)
+            await fetchBalance();
+
             // Wait for transaction to be confirmed
-            alert("✅ Shipping status updated successfully!\n\n⏳ Waiting for transaction confirmation on blockchain...\n\nAfter 10-15 seconds, go to Tracking page and click Refresh to see updated timeline.");
+            alert("✅ Shipping status updated successfully!\n\n⏳ Transaction is being confirmed on blockchain...\n\nThe Tracking page will automatically refresh to show the updated timeline. You can now proceed to Pharmacy page for delivery confirmation.");
             // Reset form
             setBatchId("");
             setEncryptedData("");
@@ -209,8 +254,10 @@ export default function CarrierPage() {
             setShipperPhone("");
             setDeliveryLocation("");
           },
-          onError: (error) => {
+          onError: async (error) => {
             console.error("Shipping update error:", error);
+            // Refresh balance in case of error (to ensure accurate display)
+            await fetchBalance();
             alert("❌ Shipping update error: " + (error instanceof Error ? error.message : String(error)));
           }
         }
@@ -224,50 +271,46 @@ export default function CarrierPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Wallet Status */}
-      <div className={`mb-6 max-w-6xl mx-auto p-4 rounded-lg border-2 ${
-        currentAccount
-          ? 'bg-green-50 border-green-300'
-          : 'bg-red-50 border-red-300'
-      }`}>
-        <div className="flex items-center space-x-2">
-          <div className={`w-3 h-3 rounded-full ${
-            currentAccount
-              ? 'bg-green-500'
-              : 'bg-red-500'
-          }`}></div>
-          <span className="font-medium">
-            {currentAccount
-              ? '✅ Wallet Connected'
-              : '❌ Wallet Not Connected'}
-          </span>
+      {/* Header Layout - 3 khu vực */}
+      <div className="max-w-7xl mx-auto mb-8 flex justify-between items-start">
+        {/* Khu vực Trái - Back Button */}
+        <div>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-4 transition-transform duration-300 hover:scale-105 group"
+          >
+            {/* Phần Logo */}
+            <div className="rounded-full">
+              <img
+                src={logoPng}
+                alt="MedTrack Logo"
+                className="h-15 w-auto drop-shadow-sm"
+              />
+            </div>
+            {/* Phần Chữ MedTrack */}
+            <span className="text-4xl font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors">
+              MedTrack
+            </span>
+          </button>
         </div>
-        {currentAccount && (
-          <div className="mt-2 text-sm font-mono break-all">
-            <strong>Wallet Address:</strong> {currentAccount.address}
-          </div>
-        )}
-        {!currentAccount && (
-          <div className="mt-2 text-sm text-red-600">
-            ⚠️ Please connect your Sui wallet to use the system
-          </div>
-        )}
-      </div>
 
-      {/* Back to Dashboard Button */}
-      <div className="max-w-6xl mx-auto mb-6">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Back to Dashboard</span>
-        </button>
+        {/* Khu vực Giữa - Title */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <h1 className="text-3xl font-bold text-gray-800">Carrier Page</h1>
+        </div>
+
+        {/* Khu vực Phải - Connect Button & Balance */}
+        <div className="flex flex-col items-end gap-2">
+          <ConnectButton />
+          {currentAccount && (
+            <div className="text-right text-sm font-medium text-gray-600">
+              💰 {balance} SUI
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">🚛 Carrier Page</h1>
-
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 

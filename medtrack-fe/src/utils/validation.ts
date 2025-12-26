@@ -107,13 +107,22 @@ export const validatePharmacyName = (name: string): { isValid: boolean; error?: 
   return validateCompanyName(name);
 };
 
-// Validate Batch ID
+// Utility function to normalize batch ID (remove 0x prefix if present)
+export const normalizeBatchId = (batchId: string): string => {
+  const trimmed = batchId.trim();
+  return trimmed.startsWith('0x') ? trimmed.substring(2) : trimmed;
+};
+
+// Validate Batch ID (accepts both with and without 0x prefix)
 export const validateBatchId = (batchId: string): { isValid: boolean; error?: string } => {
-  const batchIdRegex = /^0x[0-9a-fA-F]{64}$/;
-  if (!batchIdRegex.test(batchId.trim())) {
+  const normalized = normalizeBatchId(batchId);
+
+  // Check if it's exactly 64 hex characters
+  const batchIdRegex = /^[0-9a-fA-F]{64}$/;
+  if (!batchIdRegex.test(normalized)) {
     return {
       isValid: false,
-      error: "Batch ID không hợp lệ!\n\nBatch ID phải là địa chỉ Sui object (bắt đầu bằng 0x và 64 ký tự hex).\n\nVí dụ: 0x1234567890abcdef...\n\nVui lòng paste lại Batch ID chính xác từ Producer."
+      error: "Batch ID không hợp lệ!\n\nBatch ID phải là 64 ký tự hex (0-9, a-f, A-F).\n\nCó thể có hoặc không có tiền tố '0x'.\n\nVí dụ: 1234567890abcdef... hoặc 0x1234567890abcdef...\n\nVui lòng paste lại Batch ID chính xác từ Producer."
     };
   }
   return { isValid: true };

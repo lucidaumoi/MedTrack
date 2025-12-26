@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSuiClient } from "@mysten/dapp-kit";
 import { Search, Factory, Truck, Store, CheckCircle2, ArrowLeft } from "lucide-react";
+import logoPng from '../assets/logo.png';
 
 export default function TrackingPage() {
   const navigate = useNavigate();
   const suiClient = useSuiClient();
   const [batchId, setBatchId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [autoRefresh, setAutoRefresh] = useState(false);
 
   // Separate state for each tracking stage
   const [createdRecord, setCreatedRecord] = useState<any>(null);
@@ -17,6 +19,25 @@ export default function TrackingPage() {
   const [normalizedBatchId, setNormalizedBatchId] = useState<string>("");
   const [currentStatus, setCurrentStatus] = useState<number>(0);
   const [error, setError] = useState<string>("");
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
+    if (autoRefresh && normalizedBatchId && currentStatus < 3) {
+      // Auto refresh every 5 seconds if we have a batch ID but status is not delivered
+      intervalId = setInterval(() => {
+        console.log("Auto-refreshing timeline data...");
+        fetchTimeline();
+      }, 5000);
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [autoRefresh, normalizedBatchId, currentStatus]);
 
   const fetchTimeline = async () => {
     if (!batchId) return;
@@ -31,7 +52,7 @@ export default function TrackingPage() {
     setCurrentStatus(0);
     setError("");
 
-    // Normalize batch ID (remove 0x prefix if present, ensure proper format)
+    // Normalize batch ID (remove 0x prefix if present)
     const normalizedId = batchId.trim().startsWith('0x')
       ? batchId.trim().substring(2)
       : batchId.trim();
@@ -41,292 +62,182 @@ export default function TrackingPage() {
     console.log("=== TRACKING DEBUG ===");
     console.log("Original batchId:", batchId);
     console.log("Normalized batchId:", normalizedId);
-    console.log("Normalized length:", normalizedId.length);
-    console.log("Is valid Sui object ID format:", /^[0-9a-f]{64}$/.test(normalizedId));
 
-    // Additional validation
+    // Basic validation
     if (!/^[0-9a-f]{64}$/.test(normalizedId)) {
       console.error("❌ INVALID FORMAT: Batch ID must be 64 hex characters");
-      console.error("Expected format: /^[0-9a-f]{64}$/");
-      console.error("Got:", normalizedId);
-      alert("Invalid Batch ID format! Must be 64 hex characters.");
+      setError("Invalid Batch ID format! Must be 64 hex characters (0-9, a-f).");
       setLoading(false);
       return;
     }
 
-    // Special debug for reported batch IDs
-    if (normalizedId === '132732818db296ba156185fb60f75a35eec18493fe0daf9e81734cc74e6e22fd' ||
-        normalizedId === '54867e1a4cb4f5af1aa0156035d294b855597692fc8e7990c00c865cefafaad3') {
-      console.log("🔍 DEBUGGING SPECIFIC BATCH ID:", normalizedId);
-      console.log("This is a reported problematic batch ID");
-      console.log("Will attempt to fetch from Sui testnet...");
-    }
-
     try {
-      // BƯỚC 1: Lấy Object chính (MedicineBatch)
+      // BƯỚC 1: Lấy MedicineBatch object trực tiếp (batchId CHÍNH LÀ Object ID)
+      console.log("Fetching MedicineBatch with ID:", normalizedId);
       const batchObj = await suiClient.getObject({
         id: normalizedId,
         options: { showContent: true },
       });
 
-      console.log("Batch object response:", batchObj);
-      console.log("Batch object exists:", !!batchObj);
-      console.log("Batch object data exists:", !!batchObj?.data);
-      console.log("Batch object data type:", (batchObj?.data as any)?.dataType);
-
       if (!batchObj || !batchObj.data) {
-        console.error("❌ Batch object not found!");
-        console.error("Possible causes:");
-        console.error("1. Batch ID incorrect:", normalizedId);
-        console.error("2. Transaction not confirmed yet - wait a few seconds");
-        console.error("3. Wrong network (should be testnet)");
-        console.error("4. Smart contract error during creation");
-
-        const errorMsg = `Batch not found with ID: ${normalizedId}\n\n` +
-                        `⚠️ Possible causes:\n` +
-                        `• Transaction not confirmed yet (wait 10-30 seconds)\n` +
-                        `• Wrong network (must be testnet)\n` +
-                        `• Incorrect Batch ID\n\n` +
-                        `💡 Please try again in a few seconds!`;
-
-        setError(errorMsg);
-        console.log("❌ SEARCH FAILED - Error details above");
-
-        // Don't show alert, just set error in UI
-        // alert(errorMsg);
+        console.error("❌ MedicineBatch not found!");
+        setError("Không tìm thấy lô thuốc với ID đã nhập. Vui lòng kiểm tra lại Batch ID.");
         setLoading(false);
         return;
       }
 
       if (!batchObj.data?.content) {
-        alert("Object has no content!");
+        setError("Object không có nội dung hợp lệ.");
         setLoading(false);
         return;
       }
 
-      // Ép kiểu để lấy trường history (vector<ID>) và medicine_code
+      // Lấy fields từ MedicineBatch
       const fields = (batchObj.data.content as any).fields as any;
-      console.log("=== BATCH OBJECT DEBUG ===");
-      console.log("Full batch object:", batchObj);
-      console.log("Batch object data:", batchObj.data);
-      console.log("Batch object content:", batchObj.data?.content);
-      console.log("Batch object fields:", fields);
-
       if (!fields) {
-        console.error("Fields is null or undefined!");
-        alert("Object has no valid fields!");
+        setError("MedicineBatch không có dữ liệu hợp lệ.");
         setLoading(false);
         return;
       }
 
-      console.log("Available field keys:", Object.keys(fields));
-      console.log("Current status:", fields.current_status || fields.status);
-      console.log("Medicine code:", fields.medicine_code);
-      console.log("History field exists:", 'history' in fields);
-      console.log("History value:", fields.history);
-      console.log("History type:", typeof fields.history);
-      console.log("History is array:", Array.isArray(fields.history));
-
-      // Check if this is a StatusRecord instead of MedicineBatch
-      const content = batchObj.data?.content as any;
-      const objectType = content?.type || '';
-      const isStatusRecord = objectType.includes('StatusRecord');
-      const isMedicineBatch = objectType.includes('MedicineBatch');
-
-      console.log("Object type:", objectType);
-      console.log("Is StatusRecord:", isStatusRecord);
-      console.log("Is MedicineBatch:", isMedicineBatch);
-
-      if (isStatusRecord && !isMedicineBatch) {
-        console.error("❌ WRONG OBJECT TYPE!");
-        console.error("You searched for a StatusRecord ID, not MedicineBatch ID");
-        console.error("StatusRecord batch_id:", fields.batch_id);
-        console.error("Try searching with this MedicineBatch ID instead:", fields.batch_id);
-
-        setError(`❌ Wrong Object Type!\n\nYou searched for a StatusRecord ID instead of MedicineBatch ID.\n\nCorrect MedicineBatch ID: ${fields.batch_id}\n\nPlease copy the ID above and search again.`);
-        setLoading(false);
-        return;
-      }
-      console.log("Current status:", fields.current_status || fields.status);
-
-      // Try different field names for history
-      const historyIds: string[] = fields.history || fields.history_ids || fields.records || [];
-      const code = fields.medicine_code || fields.code || fields.medicineCode || "N/A";
+      // Lấy thông tin cơ bản
+      const code = fields.medicine_code || fields.code || "N/A";
       const currentStatus = fields.current_status || fields.status || 0;
+      const historyIds: string[] = fields.history || fields.history_ids || [];
 
-      console.log("History IDs found:", historyIds);
-      console.log("History IDs length:", historyIds?.length || 0);
       console.log("Medicine code:", code);
       console.log("Current status:", currentStatus);
+      console.log("History IDs:", historyIds);
+      console.log("History count:", historyIds.length);
 
+      // Set thông tin cơ bản (luôn hiển thị ngay cả khi chưa có history)
       setMedicineCode(code);
       setCurrentStatus(currentStatus);
 
-      // Additional debugging for history IDs
+      // BƯỚC 2: Nếu có history, lấy chi tiết tất cả StatusRecord
       if (historyIds && historyIds.length > 0) {
-        console.log("First history ID:", historyIds[0]);
-        console.log("History ID type:", typeof historyIds[0]);
-      }
+        console.log("Fetching history records:", historyIds);
+        const records = await suiClient.multiGetObjects({
+          ids: historyIds,
+          options: { showContent: true },
+        });
 
-      if (!historyIds || historyIds.length === 0) {
-        console.warn("No history IDs found, but continuing to show basic info");
-        console.warn("This means the batch was created but no StatusRecords exist yet");
-        console.warn("Status records are created when updating shipping status");
-        setMedicineCode(code);
-        alert("Batch exists but has no transaction history yet.\n\n• Update shipping status on Carrier page\n• Then click Refresh to see updated timeline!");
-        setLoading(false);
-        return;
-      }
+        if (!records || !Array.isArray(records)) {
+          console.error("Cannot retrieve history data");
+          setError("Không thể tải dữ liệu lịch sử giao dịch.");
+          setLoading(false);
+          return;
+        }
 
-      setMedicineCode(code);
-
-      // BƯỚC 2: MultiGet - Lấy chi tiết tất cả StatusRecord cùng lúc
-      console.log("Calling multiGetObjects with IDs:", historyIds);
-      const records = await suiClient.multiGetObjects({
-        ids: historyIds,
-        options: { showContent: true },
-      });
-
-      console.log("MultiGetObjects response:", records);
-
-      if (!records || !Array.isArray(records)) {
-        console.error("Invalid records response:", records);
-        alert("Cannot retrieve history data!");
-        setLoading(false);
-        return;
-      }
-
-      // BƯỚC 3: Phân loại và gán vào từng record riêng biệt
-      let hasCreated = false;
-      let hasShipping = false;
-      let hasDelivered = false;
-
-      console.log("Records received:", records.length);
-      records.forEach((record: any, index: number) => {
-        try {
-          console.log(`=== RECORD ${index} DEBUG ===`);
-          console.log(`Record ${index} full:`, record);
-          console.log(`Record ${index} data:`, record.data);
-          console.log(`Record ${index} content:`, record.data?.content);
-
-          if (!record.data || !record.data.content) {
-            console.error(`Record ${index} has no content! Skipping record ${index}`);
-            return;
-          }
-
-          const f = record.data.content.fields;
-          console.log(`Record ${index} fields:`, f);
-
-          if (!f) {
-            console.error(`Record ${index} has no fields! Skipping.`);
-            return;
-          }
-
-          console.log(`Record ${index} status:`, f.status);
-          console.log(`Record ${index} actor:`, f.actor);
-          console.log(`Record ${index} location_info:`, f.location_info);
-          console.log(`Record ${index} phone:`, f.phone);
-          console.log(`Record ${index} timestamp:`, f.timestamp);
-
-        // Xử lý phone number
-        let phoneDisplay = f.phone;
-        if (typeof phoneDisplay === 'string') {
-          phoneDisplay = phoneDisplay.trim();
-          if (phoneDisplay === "" && f.status === 1) {
-            phoneDisplay = null;
-          } else if (phoneDisplay !== "") {
-            if (phoneDisplay.match(/^(\+84|0)[0-9]{9,10}$/)) {
-              phoneDisplay = phoneDisplay.replace(/^\+84/, '0');
+        // BƯỚC 3: Xử lý và phân loại tất cả records (không filter, hiện đủ)
+        console.log("Processing", records.length, "history records");
+        records.forEach((record: any, index: number) => {
+          try {
+            if (!record.data || !record.data.content) {
+              console.warn(`Record ${index} has no content, skipping`);
+              return;
             }
-          } else {
-            phoneDisplay = null;
-          }
-        }
 
-        // Safe timestamp conversion
-        let formattedTime = "N/A";
-        try {
-          if (f.timestamp) {
-            const timestamp = Number(f.timestamp);
-            if (!isNaN(timestamp)) {
-              formattedTime = new Date(timestamp).toLocaleString();
+            const f = record.data.content.fields;
+            if (!f) {
+              console.warn(`Record ${index} has no fields, skipping`);
+              return;
             }
+
+            // Xử lý phone number
+            let phoneDisplay = f.phone;
+            if (typeof phoneDisplay === 'string') {
+              phoneDisplay = phoneDisplay.trim();
+              if (phoneDisplay === "" || phoneDisplay === "N/A") {
+                phoneDisplay = null;
+              } else if (phoneDisplay.match(/^(\+84|0)[0-9]{9,10}$/)) {
+                phoneDisplay = phoneDisplay.replace(/^\+84/, '0');
+              }
+            }
+
+            // Safe timestamp conversion
+            let formattedTime = "N/A";
+            try {
+              if (f.timestamp) {
+                const timestamp = Number(f.timestamp);
+                if (!isNaN(timestamp)) {
+                  formattedTime = new Date(timestamp).toLocaleString();
+                }
+              }
+            } catch (timeError) {
+              console.warn(`Error formatting timestamp for record ${index}:`, timeError);
+            }
+
+            const formattedRecord = {
+              status: f.status,
+              actor: f.actor,
+              location: f.location_info,
+              phone: phoneDisplay,
+              note: f.note,
+              time: formattedTime,
+            };
+
+            // Phân loại theo status (1=Created, 2=Shipping, 3=Delivered)
+            const status = f.status;
+            if (status === 1) {
+              setCreatedRecord(formattedRecord);
+              console.log("✅ Set created record");
+            } else if (status === 2) {
+              setShippingRecord(formattedRecord);
+              console.log("✅ Set shipping record");
+            } else if (status === 3) {
+              setDeliveredRecord(formattedRecord);
+              console.log("✅ Set delivered record");
+            } else {
+              console.warn(`Unknown status: ${status}`);
+            }
+          } catch (recordError) {
+            console.error(`Error processing record ${index}:`, recordError);
           }
-        } catch (timeError) {
-          console.warn(`Error formatting timestamp for record ${index}:`, timeError);
-        }
+        });
 
-        const formattedRecord = {
-          status: f.status,
-          actor: f.actor,
-          location: f.location_info,
-          phone: phoneDisplay,
-          note: f.note,
-          time: formattedTime,
-        };
-
-        // Gán vào record tương ứng và track
-        const status = f.status;
-        console.log(`Processing record with status: ${status}, type: ${typeof status}`);
-
-        // Special debug for the problematic batch
-        if (normalizedId === '54867e1a4cb4f5af1aa0156035d294b855597692fc8e7990c00c865cefafaad3') {
-          console.log(`🔍 RECORD STATUS DEBUG for batch ${normalizedId}:`);
-          console.log(`Status value:`, status);
-          console.log(`Status === 1:`, status === 1);
-          console.log(`Status === 2:`, status === 2);
-          console.log(`Status === 3:`, status === 3);
-        }
-
-        if (status === 1) {
-          setCreatedRecord(formattedRecord);
-          hasCreated = true;
-          console.log("✅ Set created record:", formattedRecord);
-        } else if (status === 2) {
-          setShippingRecord(formattedRecord);
-          hasShipping = true;
-          console.log("✅ Set shipping record:", formattedRecord);
-        } else if (status === 3) {
-          setDeliveredRecord(formattedRecord);
-          hasDelivered = true;
-          console.log("✅ Set delivered record:", formattedRecord);
-        } else {
-          console.warn(`⚠️ Unknown status: ${status} for record:`, formattedRecord);
-        }
-        } catch (recordError) {
-          console.error(`Error processing record ${index}:`, recordError);
-          // Continue processing other records
-        }
-      });
-
-      // Check if no records were found
-      console.log("Record tracking:", { hasCreated, hasShipping, hasDelivered });
-      if (!hasCreated && !hasShipping && !hasDelivered) {
-        alert("No journey data found!");
+        console.log("✅ History records processed successfully");
       } else {
-        console.log("Successfully processed records");
+        console.log("ℹ️ No history records yet - showing basic info only");
       }
 
     } catch (err) {
       console.error("Tracking error:", err);
       const errorMessage = err instanceof Error ? err.message : String(err);
-      setError(errorMessage);
-      alert(`Error loading data: ${errorMessage}\n\nCheck ID and try again.`);
+      setError(`Lỗi khi tải dữ liệu: ${errorMessage}`);
     } finally {
       setLoading(false);
     }
   };
 
+  // Enable auto-refresh if we have basic info but incomplete timeline
+  const shouldAutoRefresh = medicineCode && currentStatus < 3 && (!shippingRecord || !deliveredRecord);
+  useEffect(() => {
+    setAutoRefresh(shouldAutoRefresh);
+  }, [shouldAutoRefresh]);
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Back to Dashboard Button */}
-      <div className="max-w-3xl mx-auto mb-6">
+      <div className="max-w-6xl mx-auto mb-6">
         <button
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+          // flex: xếp ngang | items-center: căn giữa dọc | hover:scale-105: hiệu ứng phóng to cả cụm
+          className="flex items-center gap-4 transition-transform duration-300 hover:scale-105 group"
         >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Back to Dashboard</span>
+          {/* Phần Logo */}
+          <div className="rounded-full">
+            <img
+              src={logoPng}
+              alt="MedTrack Logo"
+              className="h-15 w-auto drop-shadow-sm" /* Kích thước h-20 (80px) */
+            />
+          </div>
+
+          {/* Phần Chữ MedTrack */}
+          <span className="text-4xl font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors">
+            MedTrack
+          </span>
         </button>
       </div>
 
@@ -386,6 +297,11 @@ export default function TrackingPage() {
               </div>
               <div className="mt-3 p-3 bg-blue-100 rounded text-xs">
                 <p><strong>💡 Note:</strong> If you don't see the timeline, it means the batch has no transaction history yet. Update shipping status on the Carrier page, then click Refresh to update the data.</p>
+                {autoRefresh && (
+                  <p className="mt-2 text-blue-700">
+                    <strong>🔄 Auto-refresh:</strong> This page will automatically refresh every 5 seconds to check for updates.
+                  </p>
+                )}
               </div>
             </div>
           )}

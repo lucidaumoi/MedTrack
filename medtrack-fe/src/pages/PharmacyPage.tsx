@@ -1,18 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSignAndExecuteTransaction, useCurrentAccount } from "@mysten/dapp-kit";
+import { useSignAndExecuteTransaction, useCurrentAccount, useSuiClient, ConnectButton } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
+import { MIST_PER_SUI } from "@mysten/sui/utils";
 import { PACKAGE_ID } from "../constants";
-import { ArrowLeft } from 'lucide-react';
 import {
   validatePharmacyName,
-  validatePhoneNumber
+  validatePhoneNumber,
+  validateBatchId,
+  normalizeBatchId
 } from '../utils/validation';
+import logoPng from '../assets/logo.png';
 
 export default function PharmacyPage() {
   const navigate = useNavigate();
   const { mutate: signAndExecute } = useSignAndExecuteTransaction();
   const currentAccount = useCurrentAccount();
+  const suiClient = useSuiClient();
+
+  // Balance state
+  const [balance, setBalance] = useState("0");
+
+  // Function to fetch SUI balance
+  const fetchBalance = async () => {
+    if (currentAccount) {
+      try {
+        const result = await suiClient.getBalance({ owner: currentAccount.address });
+        const val = Number(result.totalBalance) / Number(MIST_PER_SUI);
+        setBalance(val.toFixed(2));
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+        setBalance("0");
+      }
+    } else {
+      setBalance("0");
+    }
+  };
+
+  // Auto-fetch balance when account changes
+  useEffect(() => {
+    fetchBalance();
+    // Tự động fetch lại mỗi 5 giây
+    const interval = setInterval(fetchBalance, 5000);
+    return () => clearInterval(interval);
+  }, [suiClient, currentAccount]);
 
   // Form states
   const [batchId, setBatchId] = useState("");
@@ -38,6 +69,16 @@ export default function PharmacyPage() {
         return;
       }
 
+      const batchIdValidation = validateBatchId(batchId);
+      if (!batchIdValidation.isValid) {
+        alert("❌ " + batchIdValidation.error);
+        return;
+      }
+
+      const normalizedBatchId = normalizeBatchId(batchId);
+      console.log("Original batchId:", batchId);
+      console.log("Normalized batchId:", normalizedBatchId);
+
 
       // Validate pharmacy info
       const pharmacyNameValidation = validatePharmacyName(pharmacyName);
@@ -59,7 +100,7 @@ export default function PharmacyPage() {
       txb.moveCall({
         target: `${PACKAGE_ID}::supply_chain::complete_record_delivery`,
         arguments: [
-          txb.object(batchId), // Object ID of the batch
+          txb.object(normalizedBatchId), // Object ID of the batch
           txb.pure.string(pharmacyName),
           txb.pure.string(pharmacyPhone),
           txb.pure.string(pharmacyLocation), // Empty string for compatibility
@@ -73,17 +114,23 @@ export default function PharmacyPage() {
           transaction: txb,
         },
         {
-          onSuccess: (result) => {
+          onSuccess: async (result) => {
             console.log("Delivery confirmation success:", result);
-            alert("✅ Delivery confirmed successfully!");
+
+            // Refresh balance after transaction (gas fee deduction)
+            await fetchBalance();
+
+            alert("✅ Delivery confirmed successfully!\n\nThe Tracking page will automatically refresh to show the completed delivery timeline.");
 
             // Reset form
             setBatchId("");
             setPharmacyName("");
             setPharmacyPhone("");
           },
-          onError: (error) => {
+          onError: async (error) => {
             console.error("Delivery confirmation error:", error);
+            // Refresh balance in case of error (to ensure accurate display)
+            await fetchBalance();
             alert("❌ Delivery confirmation error: " + (error instanceof Error ? error.message : String(error)));
           }
         }
@@ -97,50 +144,46 @@ export default function PharmacyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Wallet Status */}
-      <div className={`mb-6 max-w-6xl mx-auto p-4 rounded-lg border-2 ${
-        currentAccount
-          ? 'bg-green-50 border-green-300'
-          : 'bg-red-50 border-red-300'
-      }`}>
-        <div className="flex items-center space-x-2">
-          <div className={`w-3 h-3 rounded-full ${
-            currentAccount
-              ? 'bg-green-500'
-              : 'bg-red-500'
-          }`}></div>
-          <span className="font-medium">
-            {currentAccount
-              ? '✅ Wallet Connected'
-              : '❌ Wallet Not Connected'}
-          </span>
+      {/* Header Layout - 3 khu vực */}
+      <div className="max-w-7xl mx-auto mb-8 flex justify-between items-start">
+        {/* Khu vực Trái - Back Button */}
+        <div>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-4 transition-transform duration-300 hover:scale-105 group"
+          >
+            {/* Phần Logo */}
+            <div className="rounded-full">
+              <img
+                src={logoPng}
+                alt="MedTrack Logo"
+                className="h-15 w-auto drop-shadow-sm"
+              />
+            </div>
+            {/* Phần Chữ MedTrack */}
+            <span className="text-4xl font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors">
+              MedTrack
+            </span>
+          </button>
         </div>
-        {currentAccount && (
-          <div className="mt-2 text-sm font-mono break-all">
-            <strong>Wallet Address:</strong> {currentAccount.address}
-          </div>
-        )}
-        {!currentAccount && (
-          <div className="mt-2 text-sm text-red-600">
-            ⚠️ Please connect your Sui wallet to use the system
-          </div>
-        )}
-      </div>
 
-      {/* Back to Dashboard Button */}
-      <div className="max-w-6xl mx-auto mb-6">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Back to Dashboard</span>
-        </button>
+        {/* Khu vực Giữa - Title */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <h1 className="text-3xl font-bold text-gray-800">Pharmacy Page</h1>
+        </div>
+
+        {/* Khu vực Phải - Connect Button & Balance */}
+        <div className="flex flex-col items-end gap-2">
+          <ConnectButton />
+          {currentAccount && (
+            <div className="text-right text-sm font-medium text-gray-600">
+              💰 {balance} SUI
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 text-center">🏥 Pharmacy Page</h1>
-
         {/* Pharmacy Form */}
         <div className="max-w-6xl mx-auto px-8">
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">

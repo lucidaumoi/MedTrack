@@ -1,11 +1,14 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSuiClient, useSignAndExecuteTransaction, useCurrentAccount } from '@mysten/dapp-kit';
+import { useState, useEffect } from 'react';
+import { useSuiClient, useSignAndExecuteTransaction, useCurrentAccount, ConnectButton } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
+import { MIST_PER_SUI } from '@mysten/sui/utils';
 import { PACKAGE_ID } from '../constants';
-import { ShieldCheck, QrCode, ArrowLeft } from 'lucide-react';
 import nacl from 'tweetnacl';
 import naclUtil from 'tweetnacl-util';
+import { ShieldCheck, QrCode, Copy } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import logoPng from '../assets/logo.png'; // ✅ Import Logo
+
 import {
   validateDrugId,
   validateProducerName,
@@ -38,513 +41,453 @@ async function encryptData(publicKey: string, data: string) {
 }
 
 export default function ProducerPage() {
-  const navigate = useNavigate();
-  const suiClient = useSuiClient();
-  const { mutate: signAndExecute } = useSignAndExecuteTransaction();
-  const currentAccount = useCurrentAccount();
+    const navigate = useNavigate();
+    const suiClient = useSuiClient();
+    const { mutate: signAndExecute } = useSignAndExecuteTransaction();
+    const currentAccount = useCurrentAccount();
 
-  // Form states
-  const [drugId, setDrugId] = useState('');
-  const [producerName, setProducerName] = useState('');
-  const [producerPhone, setProducerPhone] = useState('');
-  const [receiverCompany, setReceiverCompany] = useState('');
-  const [receiverAddress, setReceiverAddress] = useState('');
-  const [receiverPhone, setReceiverPhone] = useState('');
-  const [carrierPublicKey, setCarrierPublicKey] = useState('');
+    // Balance state
+    const [balance, setBalance] = useState("0");
 
-  // Modal states
-  const [showModal, setShowModal] = useState(false);
-  const [encryptedResult, setEncryptedResult] = useState<string | null>(null);
-  const [batchId, setBatchId] = useState('');
-
-  const handleCreateOrder = async () => {
-    try {
-      // Wallet authorization check
-      if (!currentAccount) {
-        alert("❌ Please connect your Sui wallet first!");
-        return;
-      }
-
-
-      // Validate carrier public key
-      if (!carrierPublicKey) {
-        alert("Please enter the Carrier's Public Key for encryption!");
-        return;
-      }
-
-      // Validate all form fields
-      const drugIdValidation = validateDrugId(drugId);
-      if (!drugIdValidation.isValid) {
-        alert("❌ " + drugIdValidation.error);
-        return;
-      }
-
-      const producerNameValidation = validateProducerName(producerName);
-      if (!producerNameValidation.isValid) {
-        alert("❌ " + producerNameValidation.error);
-        return;
-      }
-
-      const producerPhoneValidation = validatePhoneNumber(producerPhone);
-      if (!producerPhoneValidation.isValid) {
-        alert("❌ " + producerPhoneValidation.error);
-        return;
-      }
-
-      const receiverCompanyValidation = validateReceiverCompany(receiverCompany);
-      if (!receiverCompanyValidation.isValid) {
-        alert("❌ " + receiverCompanyValidation.error);
-        return;
-      }
-
-      const addressValidation = validateAddress(receiverAddress);
-      if (!addressValidation.isValid) {
-        alert("❌ " + addressValidation.error);
-        return;
-      }
-
-      const phoneValidation = validatePhoneNumber(receiverPhone);
-      if (!phoneValidation.isValid) {
-        alert("❌ " + phoneValidation.error);
-        return;
-      }
-
-      // Encrypt sensitive data
-      const secretData = {
-        address: receiverAddress,
-        phone: receiverPhone
-      };
-
-      const encryptedObject = await encryptData(
-        carrierPublicKey,
-        JSON.stringify(secretData)
-      );
-
-      const encryptedString = JSON.stringify(encryptedObject);
-
-      console.log("Encrypted string to be stored on Chain:", encryptedString);
-
-      // Create transaction
-      const txb = new Transaction();
-      txb.setGasBudget(200000000);
-
-      txb.moveCall({
-        target: `${PACKAGE_ID}::supply_chain::create_record`,
-        arguments: [
-          txb.pure.string(drugId),
-          txb.pure.string(producerName),
-          txb.pure.string(producerPhone),
-          txb.pure.string(receiverCompany),
-          txb.pure.string(encryptedString),
-          txb.object("0x6"), // Clock object
-        ],
-      });
-
-      // Add delay before submission
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Execute transaction
-      signAndExecute(
-        {
-          transaction: txb,
-        },
-        {
-          onSuccess: async (result) => {
-            console.log("Transaction result:", result);
-
+    // Function to fetch SUI balance
+    const fetchBalance = async () => {
+        if (currentAccount) {
             try {
-              // Get transaction details with retry logic
-              const getTransactionDetails = async (retries = 5, delay = 1000) => {
-                for (let i = 0; i < retries; i++) {
+                const result = await suiClient.getBalance({ owner: currentAccount.address });
+                const val = Number(result.totalBalance) / Number(MIST_PER_SUI);
+                setBalance(val.toFixed(2));
+            } catch (error) {
+                console.error("Failed to fetch balance:", error);
+                setBalance("0");
+            }
+        } else {
+            setBalance("0");
+        }
+    };
+
+    // Auto-fetch balance when account changes
+    useEffect(() => {
+        fetchBalance();
+        // Tự động fetch lại mỗi 5 giây
+        const interval = setInterval(fetchBalance, 5000);
+        return () => clearInterval(interval);
+    }, [suiClient, currentAccount]);
+
+    // --- State cho thông tin thuốc ---
+    const [drugId, setDrugId] = useState('');
+    const [producerName, setProducerName] = useState('');
+    const [producerPhone, setProducerPhone] = useState('');
+
+    // --- State cho thông tin Người nhận ---
+    const [receiverCompany, setReceiverCompany] = useState('');
+    const [receiverAddress, setReceiverAddress] = useState(''); // Thông tin nhạy cảm
+    const [receiverPhone, setReceiverPhone] = useState('');     // Thông tin nhạy cảm
+    
+    // --- State MỚI: Khóa công khai của Carrier ---
+    const [carrierPublicKey, setCarrierPublicKey] = useState('');
+
+    // --- State cho Modal ---
+    const [showModal, setShowModal] = useState(false);
+    const [createdBatchId, setCreatedBatchId] = useState('');
+    const [encryptedResult, setEncryptedResult] = useState('');
+
+    const handleCreateOrder = async () => {
+        try {
+            // Kiểm tra địa chỉ ví được phép
+            if (!currentAccount) {
+                alert("❌ Vui lòng kết nối ví Sui trước!");
+                return;
+            }
+
+            if (!carrierPublicKey) {
+                alert("Vui lòng nhập Public Key của Carrier để mã hóa!");
+                return;
+            }
+
+            // Validation các trường đầu vào
+            const drugIdValidation = validateDrugId(drugId);
+            if (!drugIdValidation.isValid) {
+                alert("❌ " + drugIdValidation.error);
+                return;
+            }
+
+            const producerNameValidation = validateProducerName(producerName);
+            if (!producerNameValidation.isValid) {
+                alert("❌ " + producerNameValidation.error);
+                return;
+            }
+
+            const producerPhoneValidation = validatePhoneNumber(producerPhone);
+            if (!producerPhoneValidation.isValid) {
+                alert("❌ " + producerPhoneValidation.error);
+                return;
+            }
+
+            const receiverCompanyValidation = validateReceiverCompany(receiverCompany);
+            if (!receiverCompanyValidation.isValid) {
+                alert("❌ " + receiverCompanyValidation.error);
+                return;
+            }
+
+            const addressValidation = validateAddress(receiverAddress);
+            if (!addressValidation.isValid) {
+                alert("❌ " + addressValidation.error);
+                return;
+            }
+
+            const phoneValidation = validatePhoneNumber(receiverPhone);
+            if (!phoneValidation.isValid) {
+                alert("❌ " + phoneValidation.error);
+                return;
+            }
+
+            // 1. Gom dữ liệu nhạy cảm cần giấu
+            const secretData = {
+                address: receiverAddress,
+                phone: receiverPhone
+            };
+
+            // 2. Mã hóa dữ liệu bằng Public Key của Carrier
+            const encryptedObject = await encryptData(
+                carrierPublicKey,
+                JSON.stringify(secretData)
+            );
+
+            // 3. Chuyển object mã hóa thành chuỗi String để lưu lên Blockchain
+            const encryptedString = JSON.stringify(encryptedObject);
+
+            console.log("Chuỗi mã hóa sẽ lưu lên Chain:", encryptedString);
+
+            // --- GỌI SMART CONTRACT (MOVE) ---
+            const txb = new Transaction();
+            txb.setGasBudget(200000000); 
+
+            txb.moveCall({
+              target: `${PACKAGE_ID}::supply_chain::create_record`,
+              arguments: [
+                  txb.pure.string(drugId),
+                  txb.pure.string(producerName),
+                  txb.pure.string(producerPhone),
+                  txb.pure.string(receiverCompany),
+                  txb.pure.string(encryptedString), // Chuỗi mã hóa địa chỉ + số điện thoại
+                  txb.object("0x6"), // Clock object
+              ],
+            });
+
+            // Thực hiện transaction và lấy Batch ID từ kết quả
+            signAndExecute(
+              {
+                transaction: txb,
+              },
+              {
+                onSuccess: async (result) => {
+                  console.log("Transaction Success:", result);
+
+                  // Tìm Batch ID từ transaction events - sử dụng waitForTransactionBlock
+                  let batchId = null;
                   try {
-                    const txDetails = await suiClient.getTransactionBlock({
+                    // Chờ transaction được confirm và lấy details
+                    await suiClient.waitForTransaction({
+                      digest: result.digest,
+                    });
+
+                    // Sau khi confirm, lấy transaction details
+                    const txn = await suiClient.getTransactionBlock({
                       digest: result.digest,
                       options: {
-                        showObjectChanges: true,
-                        showEffects: true,
-                      },
+                        showEvents: true,
+                      }
                     });
-                    return txDetails;
-                  } catch (error) {
-                    console.log(`❌ Attempt ${i + 1} failed:`, error);
-                    if (i < retries - 1) {
-                      await new Promise(resolve => setTimeout(resolve, delay));
-                      delay *= 2; // Exponential backoff
+
+                    console.log("Transaction confirmed, events:", txn.events);
+
+                    // Tìm BatchCreatedEvent
+                    if (txn.events) {
+                      const batchCreatedEvent = txn.events.find((event: any) =>
+                        event.type && event.type.includes('BatchCreatedEvent')
+                      );
+
+                      if (batchCreatedEvent && batchCreatedEvent.parsedJson) {
+                        batchId = (batchCreatedEvent.parsedJson as any).batch_id;
+                        console.log("Found batch ID from event:", batchId);
+                      }
                     }
+                  } catch (error) {
+                    console.error("Error waiting for transaction:", error);
                   }
-                }
-                throw new Error(`Failed to fetch transaction details after ${retries} attempts`);
-              };
 
-              const txDetails = await getTransactionDetails();
+                  // Fallback nếu không tìm thấy sau tất cả retries
+                  if (!batchId) {
+                     batchId = `0x${Date.now().toString(16)}...Fallback`;
+                  }
 
-              if (txDetails.effects?.status?.status !== 'success') {
-                throw new Error(`Transaction failed: ${txDetails.effects?.status?.error}`);
-              }
+                  // Refresh balance after transaction (gas fee deduction)
+                  await fetchBalance();
 
-              // Extract Batch ID from objectChanges or events
-              let batchIdValue = null;
-              console.log("Transaction objectChanges:", txDetails.objectChanges);
-              console.log("Transaction events:", txDetails.events);
-
-              // First try to find from events (if smart contract emits event)
-              if (txDetails.events && txDetails.events.length > 0) {
-                const batchCreatedEvent = txDetails.events.find((event: any) =>
-                  event.type?.includes('BatchCreatedEvent') || event.type?.includes('supply_chain')
-                );
-                if (batchCreatedEvent && batchCreatedEvent.parsedJson && (batchCreatedEvent.parsedJson as any).batch_id) {
-                  batchIdValue = (batchCreatedEvent.parsedJson as any).batch_id;
-                  console.log("Found batch ID from event:", batchIdValue);
+                  // Hiển thị Modal thành công
+                  setCreatedBatchId(batchId);
+                  setEncryptedResult(encryptedString);
+                  setShowModal(true);
+                },
+                onError: (error) => {
+                  console.error("Transaction error:", error);
+                  alert("❌ Lỗi khi thực hiện transaction: " + error.message);
                 }
               }
+            );
 
-              // If not found in events, try objectChanges
-              if (!batchIdValue && txDetails.objectChanges) {
-                // Try to find created object first
-                let targetObject = txDetails.objectChanges.find((change: any) =>
-                  change.type === 'created' &&
-                  (change.objectType?.includes('MedicineBatch') || change.objectType?.includes('::supply_chain::'))
-                );
-
-                // If not found, try published/shared object
-                if (!targetObject) {
-                  targetObject = txDetails.objectChanges.find((change: any) =>
-                    change.type === 'published' &&
-                    (change.objectType?.includes('MedicineBatch') || change.objectType?.includes('::supply_chain::'))
-                  );
-                }
-
-                // If still not found, try any object that might be the batch
-                if (!targetObject) {
-                  targetObject = txDetails.objectChanges.find((change: any) =>
-                    change.objectType?.includes('MedicineBatch') || change.objectType?.includes('::supply_chain::')
-                  );
-                }
-
-                if (targetObject) {
-                  batchIdValue = (targetObject as any).objectId || (targetObject as any).objectID || (targetObject as any).packageId;
-                  console.log("Found object:", targetObject);
-                }
-              }
-
-              // Last resort: try to find any created object
-              if (!batchIdValue && txDetails.objectChanges) {
-                const anyCreatedObject = txDetails.objectChanges.find((change: any) => change.type === 'created');
-                if (anyCreatedObject) {
-                  batchIdValue = (anyCreatedObject as any).objectId || (anyCreatedObject as any).objectID;
-                  console.log("Using any created object as batch ID:", batchIdValue);
-                }
-              }
-
-              if (batchIdValue) {
-                console.log("✅ Batch ID created:", batchIdValue);
-                setEncryptedResult(encryptedString);
-                setBatchId(batchIdValue);
-                setShowModal(true);
-              } else {
-                console.error("❌ Batch ID not found in transaction details:", txDetails);
-                alert("⚠️ Transaction successful but Batch ID not found. Please check console logs.");
-              }
-
-            } catch (detailError) {
-              console.error("Error fetching transaction details:", detailError);
-              alert(`⚠️ Transaction successful but could not retrieve Batch ID details.\n\nError: ${(detailError as Error).message}`);
-            }
-          },
-          onError: (error) => {
+        } catch (error) {
             console.error("Transaction error:", error);
-            alert("❌ Transaction execution error: " + (error as Error).message);
-          }
+            alert("❌ Lỗi khi tạo đơn hàng: " + (error as Error).message);
         }
-      );
+    };
 
-    } catch (error) {
-      console.error("Transaction error:", error);
-      alert("❌ Error creating order: " + (error as Error).message);
-    }
-  };
+    const handleCloseModal = () => {
+        setShowModal(false);
+        // Reset form
+        setDrugId('');
+        setProducerName('');
+        setProducerPhone('');
+        setReceiverCompany('');
+        setReceiverAddress('');
+        setReceiverPhone('');
+        setCarrierPublicKey('');
+        setCreatedBatchId('');
+        setEncryptedResult('');
+    };
 
-  return (
-    <>
-      <div className="min-h-screen bg-gray-50 p-6">
-        {/* Wallet Status */}
-        <div className={`mb-6 max-w-4xl mx-auto p-4 rounded-lg border-2 ${
-          currentAccount
-            ? 'bg-green-50 border-green-300'
-            : 'bg-red-50 border-red-300'
-        }`}>
-          <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${
-              currentAccount
-                ? 'bg-green-500'
-                : 'bg-red-500'
-            }`}></div>
-            <span className="font-medium">
-              {currentAccount
-                ? '✅ Wallet Connected'
-                : '❌ Wallet Not Connected'}
-            </span>
-          </div>
-          {currentAccount && (
-            <div className="mt-2 text-sm font-mono break-all">
-              <strong>Wallet Address:</strong> {currentAccount.address}
-            </div>
-          )}
-          {!currentAccount && (
-            <div className="mt-2 text-sm text-red-600">
-              ⚠️ Please connect your Sui wallet to use the system
-            </div>
-          )}
-        </div>
-
-      {/* Back to Dashboard Button */}
-      <div className="max-w-4xl mx-auto mb-6">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Back to Dashboard</span>
-        </button>
-      </div>
-
-      <div className="max-w-4xl mx-auto">
-          {/* Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {/* Card 1: Medicine Information */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-[#3b82f6] text-white p-3">
-                <h2 className="text-xl font-bold">💊 Medicine Information</h2>
-              </div>
-              <div className="p-6 space-y-4">
+    return (
+        <div className="min-h-screen bg-gray-50 p-6 pb-20 relative">
+            
+            {/* Header Layout - 3 khu vực */}
+            <div className="max-w-7xl mx-auto mb-8 flex justify-between items-start">
+                {/* Khu vực Trái - Back Button */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Medicine Code <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: PhT-2025-12"
-                    value={drugId}
-                    onChange={e => setDrugId(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Medicine Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: Paracetamol"
-                    value={producerName}
-                    onChange={e => setProducerName(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Phone <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: 0987654321"
-                    value={producerPhone}
-                    onChange={e => setProducerPhone(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Card 2: Receiver Information */}
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-[#3b82f6] text-white p-3">
-                <h2 className="text-xl font-bold">📦 Receiver Information</h2>
-              </div>
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Receiver Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: Pharmacy ABC"
-                    value={receiverCompany}
-                    onChange={e => setReceiverCompany(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Delivery Address <span className="text-red-500">*</span>
-                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Encrypted</span>
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: 123 ABC Street, District 1, Ho Chi Minh City"
-                    value={receiverAddress}
-                    onChange={e => setReceiverAddress(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-2">
-                    Phone <span className="text-red-500">*</span>
-                    <span className="ml-2 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Encrypted</span>
-                  </label>
-                  <input
-                    type="tel"
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Ex: 0987654321"
-                    value={receiverPhone}
-                    onChange={e => setReceiverPhone(e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 3: Security Code - Full width */}
-          <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden mb-8">
-            <div className="bg-[#3b82f6] text-white p-3">
-              <h2 className="text-xl font-bold">🔐 Security Code</h2>
-            </div>
-            <div className="p-6">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <p className="text-sm text-blue-900 font-medium mb-2">📋 How to get Public Key:</p>
-                <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside ml-2">
-                  <li>Contact the carrier to get their Public Key</li>
-                  <li>Public Key is usually a long string starting with "0x..." or hex format</li>
-                  <li>Only the Carrier can decrypt address and phone information</li>
-                </ol>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-2">
-                  Public Key <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  rows={4}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Paste Carrier's Public Key here..."
-                  value={carrierPublicKey}
-                  onChange={e => setCarrierPublicKey(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <div className="flex justify-center">
-            <button
-              onClick={handleCreateOrder}
-              disabled={!drugId || !producerName || !producerPhone || !receiverCompany || !receiverAddress || !receiverPhone || !carrierPublicKey}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-3 px-12 rounded-full transition-all duration-200 shadow-lg hover:shadow-xl disabled:shadow-none"
-            >
-              🔒 Create Order
-            </button>
-          </div>
-          <p className="text-xs text-center text-gray-500 mt-4">
-            Please fill in all required fields marked with <span className="text-red-500">*</span>
-          </p>
-        </div>
-      </div>
-
-      {/* Success Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-
-            {/* Icon Area */}
-            <div className="p-6 flex justify-center">
-              <ShieldCheck className="w-20 h-20 text-blue-500" />
-            </div>
-
-            {/* Blue Header */}
-            <div className="bg-blue-500 py-3 text-center">
-              <h3 className="text-white font-bold text-lg uppercase">Order Created</h3>
-            </div>
-
-            {/* Body */}
-            <div className="p-6 space-y-4">
-              {/* Batch ID Input Group */}
-              <div>
-                <label className="text-xs text-gray-500 mb-2 block">Batch ID</label>
-                <div className="flex gap-2 items-center border rounded-md p-2 bg-gray-50">
-                  <span className="text-sm font-mono truncate flex-1">{batchId}</span>
-                  <QrCode className="w-6 h-6 text-gray-700 flex-shrink-0" />
-                </div>
-              </div>
-
-              {/* Encrypted Data Section (Optional - collapsed) */}
-              <details className="group">
-                <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700 flex items-center gap-1">
-                  <span>📋 Encrypted Data</span>
-                  <svg className="w-3 h-3 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </summary>
-                <div className="mt-2">
-                  <textarea
-                    readOnly
-                    value={encryptedResult || ''}
-                    className="w-full p-2 bg-gray-50 border border-gray-300 rounded text-xs font-mono min-h-[80px]"
-                    onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-                  />
-                  <div className="flex gap-2 mt-2">
                     <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(encryptedResult || '');
-                        alert("✅ Encrypted data copied!");
-                      }}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded text-xs transition-all"
+                        onClick={() => navigate('/dashboard')}
+                        className="flex items-center gap-4 transition-transform duration-300 hover:scale-105 group"
                     >
-                      📋 Copy
+                        {/* Phần Logo */}
+                        <div className="rounded-full">
+                            <img
+                                src={logoPng}
+                                alt="MedTrack Logo"
+                                className="h-15 w-auto drop-shadow-sm"
+                            />
+                        </div>
+                        {/* Phần Chữ MedTrack */}
+                        <span className="text-4xl font-bold text-gray-900 tracking-tight group-hover:text-blue-600 transition-colors">
+                            MedTrack
+                        </span>
                     </button>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(`Batch ID: ${batchId}\n\nEncrypted Data: ${encryptedResult}`);
-                        alert("✅ Complete information copied!");
-                      }}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 rounded text-xs transition-all"
-                    >
-                      📋 Copy All
-                    </button>
-                  </div>
                 </div>
-              </details>
 
-              {/* Footer Actions */}
-              <div className="pt-4 flex gap-3">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    setShowModal(false);
-                    // Reset form
-                    setEncryptedResult(null);
-                    setBatchId('');
-                    setDrugId('');
-                    setProducerName('');
-                    setProducerPhone('');
-                    setReceiverCompany('');
-                    setReceiverAddress('');
-                    setReceiverPhone('');
-                    setCarrierPublicKey('');
-                  }}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                >
-                  Create New Order
-                </button>
-              </div>
+                {/* Khu vực Giữa - Title */}
+                <div className="absolute left-1/2 -translate-x-1/2">
+                    <h1 className="text-3xl font-bold text-gray-800">Manufacturer Portal</h1>
+                </div>
+
+                {/* Khu vực Phải - Connect Button & Balance */}
+                <div className="flex flex-col items-end gap-2">
+                    <ConnectButton />
+                    {currentAccount && (
+                        <div className="text-right text-sm font-medium text-gray-600">
+                            💰 {balance} SUI
+                        </div>
+                    )}
+                </div>
             </div>
 
-          </div>
+            {/* Main Form */}
+            <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                {/* --- CỘT TRÁI: THÔNG TIN THUỐC --- */}
+                <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+                    <div className="bg-blue-500 p-4">
+                        <h2 className="text-white font-bold text-lg flex items-center gap-2">
+                           📦 Medicine Information
+                        </h2>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-500 mb-1">Medicine Code</label>
+                            <input 
+                                type="text"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                placeholder="e.g. PTS_2025_12"
+                                value={drugId}
+                                onChange={e => setDrugId(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-500 mb-1">Manufacturer Name</label>
+                            <input 
+                                type="text"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                placeholder="e.g. ABC Pharma Corp"
+                                value={producerName}
+                                onChange={e => setProducerName(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-500 mb-1">Contact Phone</label>
+                            <input 
+                                type="tel"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                placeholder="e.g. 0987654321"
+                                value={producerPhone}
+                                onChange={e => setProducerPhone(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- CỘT PHẢI: THÔNG TIN NHẬN --- */}
+                <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+                    <div className="bg-blue-500 p-4">
+                        <h2 className="text-white font-bold text-lg flex items-center gap-2">
+                           📍 Receiver Information
+                        </h2>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-500 mb-1">Receiver Company</label>
+                            <input 
+                                type="text"
+                                className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                placeholder="e.g. XYZ Pharmacy Chain"
+                                value={receiverCompany}
+                                onChange={e => setReceiverCompany(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-500 mb-1">
+                                Delivery Address <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded ml-2">Encrypted</span>
+                            </label>
+                            <input 
+                                type="text"
+                                className="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-3 focus:ring-2 focus:ring-yellow-500 outline-none transition-all"
+                                placeholder="House No, Street, City..."
+                                value={receiverAddress}
+                                onChange={e => setReceiverAddress(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-500 mb-1">
+                                Receiver Phone <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded ml-2">Encrypted</span>
+                            </label>
+                            <input 
+                                type="tel"
+                                className="w-full bg-yellow-50 border border-yellow-200 rounded-lg p-3 focus:ring-2 focus:ring-yellow-500 outline-none transition-all"
+                                placeholder="Receiver's mobile number..."
+                                value={receiverPhone}
+                                onChange={e => setReceiverPhone(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- HÀNG DƯỚI: KHÓA BẢO MẬT --- */}
+                <div className="md:col-span-2 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+                     <div className="bg-blue-500 p-4">
+                        <h2 className="text-white font-bold text-lg flex items-center gap-2">
+                           🔐 Security Key
+                        </h2>
+                    </div>
+                    <div className="p-6">
+                        <label className="block text-sm font-medium text-gray-500 mb-1">Carrier's Public Key</label>
+                        <input 
+                            type="text"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            placeholder="Paste Carrier's Public Key here..."
+                            value={carrierPublicKey}
+                            onChange={e => setCarrierPublicKey(e.target.value)}
+                        />
+                         <p className="text-xs text-gray-400 mt-2">
+                            * Address and Phone will be encrypted using this key. Only the Carrier can decrypt it.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            {/* CREATE BUTTON */}
+            <div className="max-w-md mx-auto mt-8">
+                <button 
+                    onClick={handleCreateOrder}
+                    disabled={!drugId || !carrierPublicKey}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-full shadow-lg transform transition hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    Create & Encrypt Order
+                </button>
+            </div>
+
+            {/* --- MODAL SUCCESS --- */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100">
+                        
+                        {/* Icon Area */}
+                        <div className="p-8 flex justify-center bg-gray-50">
+                            <ShieldCheck className="w-24 h-24 text-blue-500 drop-shadow-md" />
+                        </div>
+
+                        {/* Blue Header */}
+                        <div className="bg-blue-500 py-4 text-center">
+                            <h3 className="text-white font-bold text-xl uppercase tracking-wide">Order Created Successfully</h3>
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-8 space-y-6">
+                            {/* Batch ID Input Group */}
+                            <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Batch ID (Save this!)</label>
+                                <div className="flex gap-2 items-center border-2 border-blue-100 rounded-lg p-3 bg-blue-50">
+                                    <span className="text-sm font-mono text-blue-900 flex-1 font-bold break-all">{createdBatchId}</span>
+                                    <QrCode className="w-6 h-6 text-blue-400" />
+                                </div>
+                                <button 
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(createdBatchId);
+                                        alert("Copied Batch ID!");
+                                    }}
+                                    className="mt-2 text-sm text-blue-600 font-bold hover:underline flex items-center gap-1"
+                                >
+                                    <Copy className="w-3 h-3" /> Copy Batch ID
+                                </button>
+                            </div>
+
+                            {/* Encrypted Data Group */}
+                             <div>
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Encrypted Data (Send to Carrier)</label>
+                                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50 max-h-24 overflow-y-auto">
+                                    <p className="text-xs font-mono text-gray-600 break-all">{encryptedResult}</p>
+                                </div>
+                                 <button 
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(encryptedResult);
+                                        alert("Copied Encrypted Data!");
+                                    }}
+                                    className="mt-2 text-sm text-gray-600 font-bold hover:underline flex items-center gap-1"
+                                >
+                                    <Copy className="w-3 h-3" /> Copy Encrypted Data
+                                </button>
+                            </div>
+                            
+                            {/* Footer Actions */}
+                            <div className="pt-2">
+                                <button 
+                                    onClick={handleCloseModal} 
+                                    className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-3 rounded-xl transition-colors"
+                                >
+                                    Close & Create New
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            )}
         </div>
-      )}
-    </>
-  );
+    );
 }

@@ -1,6 +1,7 @@
 import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import logoPng from '../assets/logo.png';
 
 export default function LandingPage() {
   const currentAccount = useCurrentAccount();
@@ -30,14 +31,24 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Header Logo */}
-      <div className="p-6 border-b border-purple-100 bg-white shadow-sm">
-        <div className="flex items-center gap-3 text-purple-600 font-bold text-xl">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <span className="text-2xl">💊</span>
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-slate-100">
+
+      {/* Header */}
+      <div className="p-6 border-b border-slate-200 bg-white/80 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto flex items-center gap-4">
+          {/* Logo trong vòng tròn trắng */}
+          <div className="rounded-full transition-transform cursor-pointer">
+            <img
+              src={logoPng}
+              alt="MedTrack Logo"
+              className="h-15 w-auto" /* Tăng kích thước lên h-20 (80px) */
+            />
           </div>
-          <span className="text-slate-700">MedTrack</span>
+
+          {/* Chữ MedTrack nằm ngoài */}
+          <span className="text-2xl font-bold text-slate-800 tracking-tight hidden sm:block">
+            MedTrack
+          </span>
         </div>
       </div>
 
@@ -89,11 +100,12 @@ export default function LandingPage() {
       </div>
 
       {/* Footer */}
-      <div className="p-6 border-t border-slate-200 bg-white">
+      <div className="p-6 border-t border-slate-200 bg-white/80 backdrop-blur-sm">
         <div className="text-center text-sm text-slate-500">
           <p>© 2025 MedTrack - Pharmaceutical Supply Chain Management System</p>
         </div>
       </div>
+
     </div>
   );
 }
